@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>岗位追踪报告 - {{ company_name }}</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f8fafc; color: #1e293b; }
+  .container { max-width: 1000px; margin: 0 auto; padding: 32px 20px; }
+  h1 { font-size: 1.5rem; font-weight: 700; }
+  h2 { font-size: 1.05rem; font-weight: 600; margin: 28px 0 12px; color: #334155; }
+  .meta { color: #64748b; font-size: 0.85rem; margin: 4px 0 24px; }
+  .cards { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
+  .card { flex: 1; min-width: 140px; background: #fff; border-radius: 10px; padding: 16px 20px;
+          box-shadow: 0 1px 3px rgba(0,0,0,.08); text-align: center; }
+  .card-num { font-size: 2rem; font-weight: 700; }
+  .card-label { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
+  .card.new .card-num   { color: #22c55e; }
+  .card.offline .card-num { color: #94a3b8; }
+  .card.changed .card-num { color: #3b82f6; }
+  .card.stale .card-num { color: #f59e0b; }
+  .first-run { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px;
+               padding: 20px 24px; color: #1d4ed8; margin-bottom: 20px; }
+  .changes { background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.08); overflow: hidden; }
+  .change-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px;
+                border-top: 1px solid #f1f5f9; font-size: 0.875rem; }
+  .change-row:first-child { border-top: none; }
+  .change-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+  .change-body { flex: 1; }
+  .change-title { font-weight: 600; }
+  .change-label { display: inline-block; padding: 1px 7px; border-radius: 9999px;
+                  font-size: 0.72rem; font-weight: 600; margin-left: 6px; }
+  .label-important { background: #fef2f2; color: #dc2626; }
+  .label-warning   { background: #fffbeb; color: #d97706; }
+  .label-info      { background: #eff6ff; color: #2563eb; }
+  .change-detail { color: #64748b; font-size: 0.8rem; margin-top: 3px; }
+  .no-changes { text-align: center; padding: 40px 20px; color: #94a3b8; font-size: 0.9rem; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px;
+          overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  thead { background: #f1f5f9; }
+  th { padding: 10px 12px; text-align: left; font-size: 0.78rem; color: #64748b;
+       font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  td { padding: 10px 12px; border-top: 1px solid #f1f5f9; font-size: 0.85rem; vertical-align: middle; }
+  tr:hover td { background: #f8fafc; }
+  .status-icon { font-size: 1rem; }
+  .salary { color: #16a34a; font-weight: 600; }
+  .inactive { color: #f59e0b; font-weight: 600; }
+  .link-btn { color: #6366f1; text-decoration: none; font-size: 0.78rem; }
+  .link-btn:hover { text-decoration: underline; }
+  .footer { margin-top: 40px; text-align: center; color: #94a3b8; font-size: 0.78rem; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>岗位追踪报告 · {{ company_name }}</h1>
+  <p class="meta">生成时间：{{ generated_at }}{% if prev_run_at %} | 上次追踪：{{ prev_run_at }}{% endif %}</p>
+
+  {% if is_first_run %}
+  <div class="first-run">
+    📌 首次追踪，已建立基准快照（共 {{ current_jobs|length }} 个岗位）。下次运行将自动与本次对比，输出变更报告。
+  </div>
+  {% else %}
+  <div class="cards">
+    <div class="card new">
+      <div class="card-num">{{ changes | selectattr("change_type","eq","new_job") | list | length }}</div>
+      <div class="card-label">🟢 新增岗位</div>
+    </div>
+    <div class="card offline">
+      <div class="card-num">{{ changes | selectattr("change_type","eq","job_offline") | list | length }}</div>
+      <div class="card-label">⚪ 可能已招到</div>
+    </div>
+    <div class="card changed">
+      <div class="card-num">{{ (changes | selectattr("change_type","eq","description_changed") | list | length) + (changes | selectattr("change_type","eq","salary_changed") | list | length) }}</div>
+      <div class="card-label">🔵 岗位有更新</div>
+    </div>
+    <div class="card stale">
+      <div class="card-num">{{ changes | selectattr("change_type","eq","stale") | list | length }}</div>
+      <div class="card-label">🟡 长期不活跃</div>
+    </div>
+  </div>
+
+  <h2>变更详情</h2>
+  {% if changes %}
+  <div class="changes">
+    {% for c in changes %}
+    <div class="change-row">
+      <div class="change-icon">{{ c.icon }}</div>
+      <div class="change-body">
+        <span class="change-title">{{ c.job_title }}</span>
+        <span class="change-label label-{{ c.severity }}">{{ c.change_label }}</span>
+        {% if c.old_value or c.new_value %}
+        <div class="change-detail">
+          {% if c.old_value %}{{ c.old_value }}{% endif %}
+          {% if c.old_value and c.new_value %} → {% endif %}
+          {% if c.new_value %}{{ c.new_value }}{% endif %}
+        </div>
+        {% endif %}
+        {% if c.job_url and c.job_url.startswith("http") %}
+        <div style="margin-top:4px;"><a class="link-btn" href="{{ c.job_url }}" target="_blank">查看岗位</a></div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="no-changes">本次与上次相比无变更 ✓</div>
+  {% endif %}
+  {% endif %}
+
+  <h2>当前岗位列表（{{ current_jobs|length }} 个）</h2>
+  {% if current_jobs %}
+  <table>
+    <thead>
+      <tr>
+        <th>状态</th><th>岗位名称</th><th>薪资</th><th>经验</th><th>HR 活跃</th><th>链接</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for snap in current_jobs %}
+    {% set is_new = snap.job_url in new_urls %}
+    {% set is_stale = snap.hr_active_days > stale_days %}
+    <tr>
+      <td class="status-icon">
+        {% if is_new %}🟢{% elif is_stale %}🟡{% else %}➖{% endif %}
+      </td>
+      <td style="font-weight:600;">{{ snap.job_title }}</td>
+      <td class="salary">
+        {% if snap.salary_min %}{{ snap.salary_min }}-{{ snap.salary_max }}K{% else %}面议{% endif %}
+      </td>
+      <td style="color:#64748b;font-size:0.8rem;">{{ snap.experience_req or "不限" }}</td>
+      <td {% if is_stale %}class="inactive"{% else %}style="color:#64748b;font-size:0.8rem;"{% endif %}>
+        {{ snap.hr_active_time or "未知" }}
+        {% if is_stale %} ⚠{% endif %}
+      </td>
+      <td>
+        {% if snap.job_url.startswith("http") %}
+        <a class="link-btn" href="{{ snap.job_url }}" target="_blank">查看</a>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <div class="footer">
+    <p>Boss Analyzer 岗位追踪 | 数据仅供参考</p>
+  </div>
+</div>
+</body>
+</html>

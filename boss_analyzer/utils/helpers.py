@@ -4,7 +4,7 @@ import time
 import logging
 from datetime import datetime, timedelta
 from difflib import SequenceMatcher
-from boss_analyzer.config import EDUCATION_LEVELS, RISK_KEYWORDS, REQUEST_DELAY_MIN, REQUEST_DELAY_MAX
+from boss_analyzer.config import EDUCATION_LEVELS, RISK_KEYWORDS, REQUEST_DELAY_MIN, REQUEST_DELAY_MAX, FAST_DELAY_MIN, FAST_DELAY_MAX
 
 logger = logging.getLogger("boss_analyzer")
 
@@ -22,6 +22,10 @@ def random_delay():
     delay = random.uniform(REQUEST_DELAY_MIN, REQUEST_DELAY_MAX)
     time.sleep(delay)
 
+
+def fast_random_delay():
+    delay = random.uniform(FAST_DELAY_MIN, FAST_DELAY_MAX)
+    time.sleep(delay)
 
 def parse_salary(salary_str: str) -> tuple[int, int]:
     m = re.search(r"(\d+)\s*[-~·]\s*(\d+)\s*[Kk千]?", salary_str)

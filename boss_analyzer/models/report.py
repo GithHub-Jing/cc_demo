@@ -1,5 +1,8 @@
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from boss_analyzer.models.job import Job
 
 
 @dataclass
@@ -41,6 +44,7 @@ class AnalysisReport:
     legitimacy: Optional[DimensionResult] = None
     freshness: Optional[DimensionResult] = None
     fitness: Optional[DimensionResult] = None
+    job_fitness_list: list = field(default_factory=list)  # list[tuple[Job, float]]
     generated_at: str = ""
 
     @property

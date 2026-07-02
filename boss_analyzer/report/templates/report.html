@@ -140,6 +140,45 @@ td { padding: 10px 8px; font-size: 14px; border-bottom: 1px solid #f8f8f8; }
   </div>
   {% endif %}
 
+  {% if report.job_fitness_list %}
+  <div class="risks-section" style="margin-top:24px;">
+    <h3>📋 岗位匹配排名</h3>
+    <table style="width:100%;border-collapse:collapse;margin-top:12px;font-size:0.85rem;">
+      <thead>
+        <tr style="background:#f1f5f9;">
+          <th style="padding:8px 10px;text-align:left;color:#64748b;font-weight:600;">排名</th>
+          <th style="padding:8px 10px;text-align:left;color:#64748b;font-weight:600;">岗位名称</th>
+          <th style="padding:8px 10px;text-align:left;color:#64748b;font-weight:600;">薪资</th>
+          <th style="padding:8px 10px;text-align:left;color:#64748b;font-weight:600;">经验要求</th>
+          <th style="padding:8px 10px;text-align:left;color:#64748b;font-weight:600;">贴合度</th>
+          <th style="padding:8px 10px;text-align:left;color:#64748b;font-weight:600;">链接</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job, score in report.job_fitness_list %}
+        <tr style="border-top:1px solid #f1f5f9;">
+          <td style="padding:8px 10px;color:#94a3b8;font-weight:700;">{{ loop.index }}</td>
+          <td style="padding:8px 10px;font-weight:600;color:#1e293b;">{{ job.title }}</td>
+          <td style="padding:8px 10px;color:#16a34a;font-weight:600;">{{ job.salary_range_str }}</td>
+          <td style="padding:8px 10px;color:#64748b;">
+            {% if job.experience_max >= 99 %}{{ job.experience_min }}年以上
+            {% elif job.experience_min == 0 and job.experience_max == 0 %}不限
+            {% else %}{{ job.experience_min }}-{{ job.experience_max }}年{% endif %}
+          </td>
+          <td style="padding:8px 10px;">
+            {% set color = "#22c55e" if score >= 80 else ("#3b82f6" if score >= 65 else ("#f59e0b" if score >= 50 else "#ef4444")) %}
+            <span style="font-weight:700;color:{{ color }};">{{ "%.0f"|format(score) }}</span>
+          </td>
+          <td style="padding:8px 10px;">
+            {% if job.job_url %}<a href="{{ job.job_url }}" target="_blank" style="color:#6366f1;font-size:0.8rem;text-decoration:none;">查看</a>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
   <div class="footer">
     <p>报告生成时间: {{ report.generated_at }}</p>
     <p>Boss Analyzer v1.0 · 数据仅供参考，请结合实际情况判断</p>

@@ -4,6 +4,21 @@ from boss_analyzer.config import FITNESS_WEIGHTS
 from boss_analyzer.utils.helpers import education_level, text_similarity, clamp
 
 
+def evaluate_fitness_per_job(jobs: list[Job], profile: UserProfile) -> list[tuple[Job, float]]:
+    if not jobs or not profile:
+        return []
+    results = []
+    for job in jobs:
+        exp = _score_experience(job, profile) * FITNESS_WEIGHTS["experience_match"]
+        skill = _score_skills(job, profile) * FITNESS_WEIGHTS["skill_match"]
+        edu = _score_education(job, profile) * FITNESS_WEIGHTS["education_match"]
+        sal = _score_salary(job, profile) * FITNESS_WEIGHTS["salary_match"]
+        score = exp + skill + edu + sal
+        results.append((job, round(score, 1)))
+    results.sort(key=lambda x: x[1], reverse=True)
+    return results
+
+
 def evaluate_fitness(jobs: list[Job], profile: UserProfile) -> DimensionResult:
     if not jobs or not profile:
         return DimensionResult(
