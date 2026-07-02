@@ -3,6 +3,7 @@ import argparse
 import logging
 import time
 import uuid
+from collections import Counter
 from datetime import datetime
 from boss_analyzer.scrapers.boss import BossScraper
 from boss_analyzer.scrapers.boss_api import BossApiClient
@@ -343,6 +344,9 @@ def search_positions(
     fast: bool = False,
     skip_tianyancha: bool = False,
     output_path: str = "",
+    output_format: str = "table",
+    skill_summary: bool = False,
+    skill_top: int = 30,
 ) -> list:
     city_code = CITY_CODES.get(city, CITY_CODES["全国"])
     if city != "全国" and city not in CITY_CODES:
@@ -357,11 +361,22 @@ def search_positions(
         if pairs:
             logger.info(f"API 返回 {len(pairs)} 条结果")
         else:
-            logger.warning("API 返回 0 条结果，回退到浏览器模式")
-            pairs = None
+            if fast:
+                if api.last_error == "session_expired":
+                    logger.warning("快速模式不回退浏览器。请先运行 `python3 -B -m boss_analyzer login` 刷新 Cookie。")
+                else:
+                    logger.warning("API 返回 0 条结果")
+                pairs = []
+            else:
+                logger.warning("API 返回 0 条结果，回退到浏览器模式")
+                pairs = None
     else:
-        logger.info("未找到 Cookie，使用浏览器模式搜索（速度较慢）")
-        pairs = None
+        if fast:
+            logger.warning("快速模式需要有效 Cookie。请先运行 `python3 -B -m boss_analyzer login`。")
+            pairs = []
+        else:
+            logger.info("未找到 Cookie，使用浏览器模式搜索（速度较慢）")
+            pairs = None
 
     if pairs is None:
         boss = BossScraper(headless=headless, fast=fast)
@@ -414,9 +429,186 @@ def search_positions(
                 logger.warning(f"完整分析失败 ({match.company.name}): {e}")
 
     ranked = rank_matches(matches)
-    path = generate_ranking_report(ranked, position, city, profile, output_path)
-    logger.info(f"排名报告已生成: {path}")
+    if output_format == "html":
+        path = generate_ranking_report(ranked, position, city, profile, output_path)
+        logger.info(f"排名报告已生成: {path}")
+    else:
+        _print_search_table(ranked, position, city)
+    if skill_summary:
+        _print_skill_summary(ranked, position=position, top_n=skill_top)
     return ranked
+
+
+def _print_search_table(matches: list[JobMatch], position: str, city: str):
+    print(f"\n岗位搜索结果 · {position} · {city} · {len(matches)} 条")
+    if not matches:
+        print("未找到匹配结果，请尝试不同的岗位关键词或城市。")
+        return
+
+    headers = ["#", "公司", "岗位", "薪资", "地点", "要求", "技能", "链接"]
+    rows = []
+    for m in matches:
+        job = m.job
+        exp = ""
+        if job.experience_min or job.experience_max:
+            exp = f"{job.experience_min}年以上" if job.experience_max >= 99 else f"{job.experience_min}-{job.experience_max}年"
+        requirement = " / ".join(v for v in [exp, job.education or "学历不限"] if v)
+        rows.append([
+            str(m.rank),
+            _clip(m.company.name, 14),
+            _clip(job.title, 26),
+            job.salary_range_str.replace("/月", ""),
+            _clip(job.location or "-", 8),
+            _clip(requirement, 14),
+            _clip("、".join(job.skills[:3]) or "-", 20),
+            job.job_url or "-",
+        ])
+
+    widths = [3, 16, 28, 10, 8, 16, 22, 10]
+    _print_table_line(widths)
+    print("| " + " | ".join(_pad(cell, width) for cell, width in zip(headers, widths)) + " |")
+    _print_table_line(widths)
+    for row in rows:
+        display = row[:-1] + [_clip(row[-1], widths[-1])]
+        print("| " + " | ".join(_pad(cell, width) for cell, width in zip(display, widths)) + " |")
+    _print_table_line(widths)
+    print("链接列较长时已截断；需要完整链接可使用 --format html。")
+
+
+def _print_skill_summary(matches: list[JobMatch], position: str = "", top_n: int = 30):
+    detail_counter = Counter()
+    category_counter = Counter()
+    category_examples = {}
+    total_jobs_with_skills = 0
+    excluded = _query_skill_terms(position)
+
+    for match in matches:
+        details = set()
+        categories = set()
+        for skill in match.job.skills:
+            normalized = _normalize_skill(skill)
+            if not normalized or normalized.lower() in excluded:
+                continue
+            category = _skill_category(normalized)
+            details.add(normalized)
+            categories.add(category)
+            category_examples.setdefault(category, Counter())[normalized] += 1
+
+        if details:
+            total_jobs_with_skills += 1
+        detail_counter.update(details)
+        category_counter.update(categories)
+
+    print(f"\n技能汇总 · 覆盖 {total_jobs_with_skills}/{len(matches)} 个岗位")
+    if excluded:
+        print(f"已排除搜索词本身: {', '.join(sorted(excluded))}")
+    if not detail_counter:
+        print("未采集到技能标签。")
+        return
+
+    print("\n技能类别")
+    category_rows = []
+    for index, (category, count) in enumerate(category_counter.most_common(), start=1):
+        examples = "、".join(
+            skill for skill, _ in category_examples.get(category, Counter()).most_common(4)
+        )
+        category_rows.append([
+            str(index),
+            category,
+            str(count),
+            f"{count / len(matches) * 100:.0f}%",
+            examples,
+        ])
+
+    widths = [3, 18, 6, 8, 36]
+    headers = ["#", "类别", "岗位数", "占比", "代表标签"]
+    _print_table_line(widths)
+    print("| " + " | ".join(_pad(cell, width) for cell, width in zip(headers, widths)) + " |")
+    _print_table_line(widths)
+    for row in category_rows:
+        display = [row[0], _clip(row[1], widths[1]), row[2], row[3], _clip(row[4], widths[4])]
+        print("| " + " | ".join(_pad(cell, width) for cell, width in zip(display, widths)) + " |")
+    _print_table_line(widths)
+
+    print(f"\n细分技能 Top {max(top_n, 1)}")
+    rows = [
+        [str(index), skill, str(count), f"{count / len(matches) * 100:.0f}%"]
+        for index, (skill, count) in enumerate(detail_counter.most_common(max(top_n, 1)), start=1)
+    ]
+    widths = [3, 24, 6, 8]
+    headers = ["#", "技能", "次数", "占比"]
+    _print_table_line(widths)
+    print("| " + " | ".join(_pad(cell, width) for cell, width in zip(headers, widths)) + " |")
+    _print_table_line(widths)
+    for row in rows:
+        display = [row[0], _clip(row[1], widths[1]), row[2], row[3]]
+        print("| " + " | ".join(_pad(cell, width) for cell, width in zip(display, widths)) + " |")
+    _print_table_line(widths)
+
+
+def _normalize_skill(skill: str) -> str:
+    skill = str(skill or "").strip()
+    return " ".join(skill.split())
+
+
+def _query_skill_terms(position: str) -> set[str]:
+    text = str(position or "").lower()
+    terms = set()
+    known = ["python", "java", "golang", "go", "php", "c++", "前端", "后端", "测试", "运维"]
+    for item in known:
+        if item in text:
+            terms.add(item)
+    return terms
+
+
+def _skill_category(skill: str) -> str:
+    lower = skill.lower()
+    rules = [
+        ("工程化/部署", ["docker", "kubernetes", "k8s", "nginx", "linux", "ci/cd", "运维", "部署", "负载均衡", "消息列队", "消息队列"]),
+        ("后端框架", ["django", "flask", "fastapi", "tornado", "spring", "laravel"]),
+        ("数据库/缓存", ["mysql", "postgresql", "redis", "mongodb", "sql", "数据库", "缓存"]),
+        ("爬虫/自动化", ["爬虫", "scrapy", "selenium", "playwright", "自动化", "影刀", "rpa"]),
+        ("数据分析/BI", ["数据分析", "power bi", "tableau", "可视化", "pandas", "numpy"]),
+        ("AI/机器学习", ["机器学习", "深度学习", "pytorch", "tensorflow", "ai", "claude", "大模型", "llm"]),
+        ("编程语言", ["java", "c++", "golang", "go", "php", "javascript", "typescript", "c#"]),
+        ("全栈开发", ["全栈"]),
+        ("专业背景", ["计算机相关专业", "计算机", "本科", "硕士", "专业"]),
+        ("业务/领域经验", ["量化", "电商", "金融", "交易", "网络工程师经验", "团队管理经验"]),
+        ("职业素质", ["好奇心", "沟通", "团队", "责任心", "学习能力"]),
+    ]
+    for category, keywords in rules:
+        if any(keyword in lower for keyword in keywords):
+            return category
+    return "其他技能"
+
+
+def _clip(text: str, width: int) -> str:
+    text = str(text or "")
+    if _display_width(text) <= width:
+        return text
+
+    result = ""
+    used = 0
+    for ch in text:
+        ch_width = _display_width(ch)
+        if used + ch_width > max(0, width - 1):
+            break
+        result += ch
+        used += ch_width
+    return result + "…"
+
+
+def _pad(text: str, width: int) -> str:
+    text = str(text or "")
+    return text + " " * max(0, width - _display_width(text))
+
+
+def _display_width(text: str) -> int:
+    return sum(2 if ord(ch) > 127 else 1 for ch in str(text))
+
+
+def _print_table_line(widths: list[int]):
+    print("+-" + "-+-".join("-" * width for width in widths) + "-+")
 
 
 # ------------------------------------------------------------------ #
@@ -511,6 +703,12 @@ def main():
     p_search.add_argument("--full", action="store_true")
     p_search.add_argument("--fast", action="store_true")
     p_search.add_argument("-o", "--output", default="")
+    p_search.add_argument("--format", choices=["table", "html"], default="table",
+                          help="输出格式。默认 table；html 会生成报告文件")
+    p_search.add_argument("--skill-summary", action="store_true",
+                          help="汇总本次结果中的技能标签出现次数")
+    p_search.add_argument("--skill-top", type=int, default=30,
+                          help="技能汇总最多显示多少项，默认 30")
     p_search.add_argument("--no-headless", action="store_true")
     _add_profile_args(p_search)
 
@@ -550,6 +748,9 @@ def main():
             headless=headless,
             fast=args.fast,
             output_path=args.output,
+            output_format=args.format,
+            skill_summary=args.skill_summary,
+            skill_top=args.skill_top,
         )
     elif args.cmd == "analyze":
         analyze(
@@ -572,6 +773,7 @@ def main():
             headless=headless,
             fast=args.fast,
             output_path=args.output,
+            output_format="table",
         )
     elif args.query:
         # 向后兼容：裸 query

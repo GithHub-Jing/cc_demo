@@ -32,10 +32,12 @@ class BossApiClient:
     def __init__(self):
         self._session = requests.Session()
         self._ready = False
+        self.last_error = ""
 
     def setup(self) -> bool:
         """Load persisted cookies. Returns True if cookies are available."""
         if not has_cookies():
+            self.last_error = "missing_cookie"
             logger.info(
                 f"未找到 Cookie 文件 ({cookie_file_path()})。\n"
                 "请先运行: python -m boss_analyzer login\n"
@@ -46,6 +48,7 @@ class BossApiClient:
         for name, value in cookies.items():
             self._session.cookies.set(name, value, domain=".zhipin.com")
         self._ready = True
+        self.last_error = ""
         logger.debug(f"已加载 {len(cookies)} 个 Cookie")
         return True
 
@@ -68,6 +71,7 @@ class BossApiClient:
         Fetches multiple pages until `limit` is reached.
         """
         if not self._ready:
+            self.last_error = "not_ready"
             return []
 
         results = []
@@ -79,22 +83,27 @@ class BossApiClient:
             error = data.get("error")
 
             if error == "session_expired":
-                logger.warning("Cookie 已过期，请重新运行 `python -m boss_analyzer login` 刷新登录状态")
+                self.last_error = "session_expired"
+                logger.warning("Cookie 已过期，请重新运行 `python3 -B -m boss_analyzer login` 刷新登录状态")
                 break
             if error == "rate_limited":
+                self.last_error = "rate_limited"
                 logger.warning("API 请求频率过高，等待后重试...")
                 time.sleep(random.uniform(5, 10))
                 continue
             if error:
+                self.last_error = error
                 logger.warning(f"API 返回错误: {error}")
                 break
 
             job_list = data.get("jobList", [])
             if not job_list:
+                self.last_error = ""
                 break
 
             parsed = self._parse_job_list(job_list)
             results.extend(parsed)
+            self.last_error = ""
 
             if not data.get("hasMore") or len(parsed) < page_size:
                 break

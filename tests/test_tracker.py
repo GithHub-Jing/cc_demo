@@ -1,6 +1,12 @@
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 
 from boss_analyzer.analyzers.tracker import detect_changes
+from boss_analyzer.main import _print_skill_summary
+from boss_analyzer.models.company import Company
+from boss_analyzer.models.job import Job
+from boss_analyzer.models.ranking import JobMatch
 from boss_analyzer.models.snapshot import JobSnapshot
 
 
@@ -48,6 +54,31 @@ class TrackerTest(unittest.TestCase):
         changes = detect_changes(old, new, recent_history=history)
 
         self.assertNotIn("frequent_update", [c.change_type for c in changes])
+
+    def test_print_skill_summary_counts_each_skill_once_per_job(self):
+        matches = [
+            JobMatch(
+                company=Company(name="A"),
+                job=Job(title="Python", skills=["Python", "Django", "Python"]),
+            ),
+            JobMatch(
+                company=Company(name="B"),
+                job=Job(title="Backend", skills=["Python", "Docker"]),
+            ),
+        ]
+        output = StringIO()
+
+        with redirect_stdout(output):
+            _print_skill_summary(matches, position="Python工程师", top_n=3)
+
+        text = output.getvalue()
+        self.assertIn("技能汇总", text)
+        self.assertIn("已排除搜索词本身: python", text)
+        self.assertIn("后端框架", text)
+        self.assertIn("工程化/部署", text)
+        self.assertIn("Django", text)
+        self.assertIn("Docker", text)
+        self.assertNotIn("| Python", text)
 
 
 if __name__ == "__main__":
