@@ -90,6 +90,7 @@ def generate_tracking_report(
     current_snapshots: list,
     changes: list,
     is_first_run: bool,
+    lifecycle_statuses: list = None,
     prev_run_at: str = "",
     output_path: str = "",
 ) -> str:
@@ -102,6 +103,7 @@ def generate_tracking_report(
         company_name=company_name,
         current_jobs=current_snapshots,
         changes=changes,
+        lifecycle_statuses=lifecycle_statuses or [],
         is_first_run=is_first_run,
         new_urls=new_urls,
         prev_run_at=prev_run_at,

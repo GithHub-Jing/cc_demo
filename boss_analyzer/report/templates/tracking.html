@@ -49,6 +49,7 @@
   .inactive { color: #f59e0b; font-weight: 600; }
   .link-btn { color: #6366f1; text-decoration: none; font-size: 0.78rem; }
   .link-btn:hover { text-decoration: underline; }
+  .evidence { color:#64748b; font-size:0.78rem; line-height:1.45; }
   .footer { margin-top: 40px; text-align: center; color: #94a3b8; font-size: 0.78rem; }
 </style>
 </head>
@@ -111,6 +112,30 @@
   {% else %}
   <div class="no-changes">本次与上次相比无变更 ✓</div>
   {% endif %}
+  {% endif %}
+
+  {% if lifecycle_statuses %}
+  <h2>长期状态监控</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>状态</th><th>岗位</th><th>观察天数</th><th>未更新天数</th><th>快照</th><th>置信</th><th>证据</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for status in lifecycle_statuses %}
+    <tr>
+      <td style="white-space:nowrap;">{{ status.icon }} {{ status.status_label }}</td>
+      <td style="font-weight:600;">{{ status.job_title }}</td>
+      <td>{{ status.observed_days }}</td>
+      <td>{{ status.days_since_update }}</td>
+      <td>{{ status.seen_count }}</td>
+      <td>{{ status.confidence }}</td>
+      <td class="evidence">{{ status.evidence }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
   {% endif %}
 
   <h2>当前岗位列表（{{ current_jobs|length }} 个）</h2>

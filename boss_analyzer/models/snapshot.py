@@ -69,3 +69,31 @@ class JobChange:
             "frequent_update": "🟠",
         }
         return icons.get(self.change_type, "➖")
+
+
+@dataclass
+class JobLifecycleStatus:
+    job_url: str
+    company_name: str
+    job_title: str
+    status_code: str
+    status_label: str
+    confidence: str
+    observed_days: int = 0
+    days_since_update: int = 0
+    seen_count: int = 0
+    update_count: int = 0
+    evidence: str = ""
+
+    @property
+    def icon(self) -> str:
+        icons = {
+            "new": "🆕",
+            "urgent": "🔥",
+            "active": "✅",
+            "evergreen": "♻️",
+            "stale": "🧊",
+            "uncertain": "❔",
+            "offline": "⚪",
+        }
+        return icons.get(self.status_code, "➖")

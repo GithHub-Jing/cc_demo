@@ -16,7 +16,7 @@ from boss_analyzer.analyzers.legitimacy import evaluate_legitimacy
 from boss_analyzer.analyzers.freshness import evaluate_freshness
 from boss_analyzer.analyzers.fitness import evaluate_fitness, evaluate_fitness_per_job
 from boss_analyzer.analyzers.ranking import rank_matches
-from boss_analyzer.analyzers.tracker import detect_changes
+from boss_analyzer.analyzers.tracker import detect_changes, classify_lifecycles
 from boss_analyzer.models.job import UserProfile
 from boss_analyzer.models.ranking import JobMatch
 from boss_analyzer.models.report import AnalysisReport
@@ -153,28 +153,31 @@ def track(
 
     # 先保存当前快照
     store.save_snapshots(company_name, current_snapshots, run_id, captured_at)
+    snapshot_histories = {
+        s.job_url: store.get_snapshot_history(company_name, s.job_url, limit=200)
+        for s in current_snapshots
+    }
+    lifecycle_statuses = classify_lifecycles(snapshot_histories, captured_at)
 
     # 变更检测
     changes = []
     prev_run_at = ""
     if not is_first_run:
-        recent_history = {
-            s.job_url: store.get_snapshot_history(company_name, s.job_url, limit=8)
-            for s in current_snapshots
-        }
+        recent_history = {url: history[-8:] for url, history in snapshot_histories.items()}
         changes = detect_changes(prev_snapshots, current_snapshots, captured_at, recent_history)
         history = store.get_run_history(company_name, limit=2)
         if len(history) >= 2:
             prev_run_at = history[1].get("ran_at", "")
 
     # 终端摘要
-    _print_tracking_summary(company_name, current_snapshots, changes, is_first_run)
+    _print_tracking_summary(company_name, current_snapshots, changes, is_first_run, lifecycle_statuses)
 
     # HTML 报告
     path = generate_tracking_report(
         company_name=company_name,
         current_snapshots=current_snapshots,
         changes=changes,
+        lifecycle_statuses=lifecycle_statuses,
         is_first_run=is_first_run,
         prev_run_at=prev_run_at,
         output_path=output_path,
@@ -204,10 +207,21 @@ def _search_company_jobs(
         logger.info("使用 API 模式追踪（已检测到 Cookie）")
         pairs = api.search_jobs(position, city_code, limit)
         if not pairs:
-            logger.warning("API 返回 0 条结果，回退到浏览器模式")
-            pairs = None
+            if fast:
+                if api.last_error == "session_expired":
+                    logger.warning("快速模式不回退浏览器。请先运行 `python3 -B -m boss_analyzer login` 刷新 Cookie。")
+                else:
+                    logger.warning("API 返回 0 条结果")
+                pairs = []
+            else:
+                logger.warning("API 返回 0 条结果，回退到浏览器模式")
+                pairs = None
     else:
-        logger.info("未找到 Cookie，使用浏览器模式追踪（速度较慢）")
+        if fast:
+            logger.warning("快速模式需要有效 Cookie。请先运行 `python3 -B -m boss_analyzer login`。")
+            pairs = []
+        else:
+            logger.info("未找到 Cookie，使用浏览器模式追踪（速度较慢）")
 
     if pairs is None:
         boss = BossScraper(headless=headless, fast=fast)
@@ -235,7 +249,7 @@ def _company_matches(candidate: str, query: str) -> bool:
     return query in candidate or candidate in query
 
 
-def _print_tracking_summary(company_name, snapshots, changes, is_first_run):
+def _print_tracking_summary(company_name, snapshots, changes, is_first_run, lifecycle_statuses=None):
     sep = "=" * 50
     print(f"\n{sep}")
     print(f"  岗位追踪摘要 · {company_name}")
@@ -263,6 +277,30 @@ def _print_tracking_summary(company_name, snapshots, changes, is_first_run):
             if len(changes) > 10:
                 print(f"  ... 共 {len(changes)} 条变更，详见 HTML 报告")
     print(sep + "\n")
+    if lifecycle_statuses:
+        _print_lifecycle_table(lifecycle_statuses[:12])
+
+
+def _print_lifecycle_table(statuses):
+    print("长期状态监控")
+    widths = [3, 24, 18, 8, 8, 8, 30]
+    headers = ["#", "岗位", "状态", "观察天", "未更新", "快照", "证据"]
+    _print_table_line(widths)
+    print("| " + " | ".join(_pad(cell, width) for cell, width in zip(headers, widths)) + " |")
+    _print_table_line(widths)
+    for index, status in enumerate(statuses, start=1):
+        row = [
+            str(index),
+            _clip(status.job_title, widths[1]),
+            _clip(f"{status.icon} {status.status_label}", widths[2]),
+            str(status.observed_days),
+            str(status.days_since_update),
+            str(status.seen_count),
+            _clip(status.evidence, widths[6]),
+        ]
+        print("| " + " | ".join(_pad(cell, width) for cell, width in zip(row, widths)) + " |")
+    _print_table_line(widths)
+    print()
 
 
 # ------------------------------------------------------------------ #

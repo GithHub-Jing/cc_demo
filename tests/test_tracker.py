@@ -2,7 +2,7 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 
-from boss_analyzer.analyzers.tracker import detect_changes
+from boss_analyzer.analyzers.tracker import detect_changes, classify_lifecycle
 from boss_analyzer.main import _print_skill_summary
 from boss_analyzer.models.company import Company
 from boss_analyzer.models.job import Job
@@ -54,6 +54,32 @@ class TrackerTest(unittest.TestCase):
         changes = detect_changes(old, new, recent_history=history)
 
         self.assertNotIn("frequent_update", [c.change_type for c in changes])
+
+    def test_classifies_short_term_urgent_job(self):
+        history = [
+            snapshot("job-1", 10, 20, "a", 0),
+            snapshot("job-1", 12, 24, "b", 0),
+        ]
+        history[0].captured_at = "2026-07-01 10:00:00"
+        history[1].captured_at = "2026-07-05 10:00:00"
+
+        status = classify_lifecycle(history, "2026-07-05 10:00:00")
+
+        self.assertEqual(status.status_code, "urgent")
+        self.assertEqual(status.status_label, "短期急招")
+
+    def test_classifies_stale_long_running_job(self):
+        history = [
+            snapshot("job-1", 10, 20, "a", 30),
+            snapshot("job-1", 10, 20, "a", 30),
+        ]
+        history[0].captured_at = "2026-05-01 10:00:00"
+        history[1].captured_at = "2026-07-01 10:00:00"
+
+        status = classify_lifecycle(history, "2026-07-02 10:00:00")
+
+        self.assertEqual(status.status_code, "stale")
+        self.assertEqual(status.status_label, "长期低热/疑似占位")
 
     def test_print_skill_summary_counts_each_skill_once_per_job(self):
         matches = [
