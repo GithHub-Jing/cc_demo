@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>测试公司 - 企业分析报告</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f0f2f5; color: #1a1a2e; line-height: 1.6; }
+.container { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+.header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: #fff; border-radius: 16px; padding: 32px; margin-bottom: 24px; text-align: center; }
+.header h1 { font-size: 28px; margin-bottom: 8px; }
+.header .subtitle { opacity: 0.8; font-size: 14px; }
+
+.overall { display: flex; align-items: center; justify-content: center; gap: 24px; margin-top: 24px; }
+.gauge { position: relative; width: 120px; height: 120px; }
+.gauge svg { transform: rotate(-90deg); }
+.gauge-bg { fill: none; stroke: rgba(255,255,255,0.15); stroke-width: 8; }
+.gauge-fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
+.gauge-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 32px; font-weight: 700; }
+.gauge-label { font-size: 12px; opacity: 0.7; display: block; margin-top: 2px; }
+.overall-badge { display: inline-block; padding: 6px 20px; border-radius: 20px; font-size: 16px; font-weight: 600; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.card-title { font-size: 18px; font-weight: 600; }
+.card-score { font-size: 28px; font-weight: 700; }
+.card-bar { height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+.card-bar-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
+.card-badge { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; color: #fff; }
+
+.detail-section { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.detail-section h3 { font-size: 16px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 10px 8px; font-size: 13px; color: #6b7280; font-weight: 500; border-bottom: 1px solid #f0f0f0; }
+td { padding: 10px 8px; font-size: 14px; border-bottom: 1px solid #f8f8f8; }
+.score-cell { font-weight: 600; }
+.risk-tag { display: inline-block; padding: 1px 8px; border-radius: 8px; font-size: 12px; color: #fff; }
+
+.risks-section { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.risks-section h3 { color: #ef4444; margin-bottom: 16px; }
+.risk-item { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-bottom: 1px solid #fef2f2; }
+.risk-icon { color: #ef4444; font-size: 16px; flex-shrink: 0; margin-top: 2px; }
+.suggestion-item { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f0fdf4; }
+.suggestion-icon { color: #22c55e; font-size: 16px; flex-shrink: 0; margin-top: 2px; }
+
+.footer { text-align: center; padding: 24px; color: #9ca3af; font-size: 12px; }
+
+@media (max-width: 640px) {
+  .overall { flex-direction: column; }
+  .cards { grid-template-columns: 1fr; }
+  .header h1 { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>测试公司</h1>
+    <div class="subtitle">企业招聘风险分析报告</div>
+    <div class="overall">
+      <div class="gauge">
+        <svg viewBox="0 0 120 120" width="120" height="120">
+          <circle class="gauge-bg" cx="60" cy="60" r="52"></circle>
+          <circle class="gauge-fill" cx="60" cy="60" r="52"
+            stroke="#f59e0b"
+            stroke-dasharray="326.7"
+            stroke-dashoffset="79.56234000000003">
+          </circle>
+        </svg>
+        <div class="gauge-text">76<span class="gauge-label">总评分</span></div>
+      </div>
+      <div>
+        <div class="overall-badge" style="background: #f59e0b;">注意</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cards">
+    
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">企业真实性</span>
+        <span class="card-score" style="color: #22c55e;">84</span>
+      </div>
+      <div class="card-bar">
+        <div class="card-bar-fill" style="width: 84.16666666666666%; background: #22c55e;"></div>
+      </div>
+      <div>
+        <span class="card-badge" style="background: #22c55e;">安全</span>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">招聘真实性</span>
+        <span class="card-score" style="color: #f59e0b;">63</span>
+      </div>
+      <div class="card-bar">
+        <div class="card-bar-fill" style="width: 62.8%; background: #f59e0b;"></div>
+      </div>
+      <div>
+        <span class="card-badge" style="background: #f59e0b;">注意</span>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">岗位贴合度</span>
+        <span class="card-score" style="color: #22c55e;">80</span>
+      </div>
+      <div class="card-bar">
+        <div class="card-bar-fill" style="width: 80.0%; background: #22c55e;"></div>
+      </div>
+      <div>
+        <span class="card-badge" style="background: #22c55e;">安全</span>
+      </div>
+    </div>
+    
+  </div>
+
+  
+  <div class="detail-section">
+    <h3>企业真实性 · 详细评分</h3>
+    <table>
+      <thead>
+        <tr><th>评分项</th><th>得分</th><th>权重</th><th>详情</th><th>风险</th></tr>
+      </thead>
+      <tbody>
+        
+        <tr>
+          <td>注册信息</td>
+          <td class="score-cell" style="color: #22c55e;">67</td>
+          <td>25%</td>
+          <td>已填充 4/6 项工商信息</td>
+          <td><span class="risk-tag" style="background: #22c55e;">安全</span></td>
+        </tr>
+        
+        <tr>
+          <td>经营状态</td>
+          <td class="score-cell" style="color: #22c55e;">100</td>
+          <td>20%</td>
+          <td>状态: 存续</td>
+          <td><span class="risk-tag" style="background: #22c55e;">安全</span></td>
+        </tr>
+        
+        <tr>
+          <td>成立年限</td>
+          <td class="score-cell" style="color: #22c55e;">100</td>
+          <td>15%</td>
+          <td>成立 8.6 年</td>
+          <td><span class="risk-tag" style="background: #22c55e;">安全</span></td>
+        </tr>
+        
+        <tr>
+          <td>注册资本</td>
+          <td class="score-cell" style="color: #22c55e;">100</td>
+          <td>10%</td>
+          <td>注册资本: 1000万人民币</td>
+          <td><span class="risk-tag" style="background: #22c55e;">安全</span></td>
+        </tr>
+        
+        <tr>
+          <td>社保匹配</td>
+          <td class="score-cell" style="color: #f59e0b;">50</td>
+          <td>15%</td>
+          <td>社保人数: 未知, 规模: 100-499人</td>
+          <td><span class="risk-tag" style="background: #f59e0b;">注意</span></td>
+        </tr>
+        
+        <tr>
+          <td>网络存在</td>
+          <td class="score-cell" style="color: #22c55e;">100</td>
+          <td>15%</td>
+          <td>官网=有, 多平台=是, 新闻=5条</td>
+          <td><span class="risk-tag" style="background: #22c55e;">安全</span></td>
+        </tr>
+        
+      </tbody>
+    </table>
+  </div>
+  
+  <div class="detail-section">
+    <h3>招聘真实性 · 详细评分</h3>
+    <table>
+      <thead>
+        <tr><th>评分项</th><th>得分</th><th>权重</th><th>详情</th><th>风险</th></tr>
+      </thead>
+      <tbody>
+        
+        <tr>
+          <td>HR活跃度</td>
+          <td class="score-cell" style="color: #22c55e;">100</td>
+          <td>25%</td>
+          <td>最近活跃: 0天前</td>
+          <td><span class="risk-tag" style="background: #22c55e;">安全</span></td>
+        </tr>
+        
+        <tr>
+          <td>更新频率</td>
+          <td class="score-cell" style="color: #f59e0b;">0</td>
+          <td>20%</td>
+          <td>0/1 个岗位有发布时间信息</td>
+          <td><span class="risk-tag" style="background: #f59e0b;">注意</span></td>
+        </tr>
+        
+        <tr>
+          <td>描述质量</td>
+          <td class="score-cell" style="color: #f97316;">34</td>
+          <td>20%</td>
+          <td>平均 JD 长度 34 字</td>
+          <td><span class="risk-tag" style="background: #f97316;">警告</span></td>
+        </tr>
+        
+        <tr>
+          <td>薪资合理性</td>
+          <td class="score-cell" style="color: #22c55e;">100</td>
+          <td>15%</td>
+          <td>1 个岗位有薪资信息</td>
+          <td><span class="risk-tag" style="background: #22c55e;">安全</span></td>
+        </tr>
+        
+        <tr>
+          <td>岗位数量</td>
+          <td class="score-cell" style="color: #f59e0b;">60</td>
+          <td>10%</td>
+          <td>共 1 个在招岗位</td>
+          <td><span class="risk-tag" style="background: #f59e0b;">注意</span></td>
+        </tr>
+        
+        <tr>
+          <td>重复检测</td>
+          <td class="score-cell" style="color: #22c55e;">100</td>
+          <td>10%</td>
+          <td>发现 0 对高度相似岗位</td>
+          <td><span class="risk-tag" style="background: #22c55e;">安全</span></td>
+        </tr>
+        
+      </tbody>
+    </table>
+  </div>
+  
+  <div class="detail-section">
+    <h3>岗位贴合度 · 详细评分</h3>
+    <table>
+      <thead>
+        <tr><th>评分项</th><th>得分</th><th>权重</th><th>详情</th><th>风险</th></tr>
+      </thead>
+      <tbody>
+        
+        <tr>
+          <td>经验匹配</td>
+          <td class="score-cell" style="color: #22c55e;">100</td>
+          <td>25%</td>
+          <td>要求 3-5 年, 您有 4 年 (Python开发)</td>
+          <td><span class="risk-tag" style="background: #22c55e;">安全</span></td>
+        </tr>
+        
+        <tr>
+          <td>技能匹配</td>
+          <td class="score-cell" style="color: #ef4444;">33</td>
+          <td>30%</td>
+          <td>匹配 1/3 项技能 (Python开发)</td>
+          <td><span class="risk-tag" style="background: #ef4444;">危险</span></td>
+        </tr>
+        
+        <tr>
+          <td>学历匹配</td>
+          <td class="score-cell" style="color: #22c55e;">100</td>
+          <td>15%</td>
+          <td>要求 本科, 您 本科 (Python开发)</td>
+          <td><span class="risk-tag" style="background: #22c55e;">安全</span></td>
+        </tr>
+        
+        <tr>
+          <td>薪资匹配</td>
+          <td class="score-cell" style="color: #22c55e;">100</td>
+          <td>30%</td>
+          <td>岗位 15-25K/月, 期望 15-25K (Python开发)</td>
+          <td><span class="risk-tag" style="background: #22c55e;">安全</span></td>
+        </tr>
+        
+      </tbody>
+    </table>
+  </div>
+  
+
+  
+  <div class="risks-section">
+    <h3>⚠ 风险提示</h3>
+    
+    <div class="risk-item">
+      <span class="risk-icon">●</span>
+      <span>技能匹配度偏低</span>
+    </div>
+    
+  </div>
+  
+
+  
+  <div class="risks-section">
+    <h3 style="color: #22c55e;">✓ 改善建议</h3>
+    
+    <div class="suggestion-item">
+      <span class="suggestion-icon">●</span>
+      <span>岗位描述过于简略，建议面试时详细了解工作内容</span>
+    </div>
+    
+    <div class="suggestion-item">
+      <span class="suggestion-icon">●</span>
+      <span>建议补充岗位要求的核心技能</span>
+    </div>
+    
+  </div>
+  
+
+  <div class="footer">
+    <p>报告生成时间: 2026-07-01 16:52:00</p>
+    <p>Boss Analyzer v1.0 · 数据仅供参考，请结合实际情况判断</p>
+  </div>
+</div>
+</body>
+</html>
