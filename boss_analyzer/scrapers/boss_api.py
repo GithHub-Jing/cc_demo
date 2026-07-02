@@ -197,6 +197,21 @@ class BossApiClient:
         job.skills = item.get("skills", [])
         job.hr_name = item.get("bossName", "")
         job.hr_title = item.get("bossTitle", "")
+        job.hr_active_time = (
+            item.get("bossActiveTime")
+            or item.get("activeTimeDesc")
+            or item.get("bossOnline")
+            or ""
+        )
+        description = (
+            item.get("postDescription")
+            or item.get("jobDesc")
+            or item.get("jobLabels")
+            or ""
+        )
+        if isinstance(description, list):
+            description = " ".join(str(v) for v in description)
+        job.description = str(description)
 
         # Boss 直聘 job URL
         enc_jid = item.get("encryptJobId", "")

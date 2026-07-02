@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>岗位搜索排名 - Python工程师</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f8fafc; color: #1e293b; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 20px; }
+  h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 4px; }
+  .meta { color: #64748b; font-size: 0.875rem; margin-bottom: 24px; }
+  .summary-bar { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  .chip { background: #e2e8f0; border-radius: 9999px; padding: 4px 14px; font-size: 0.82rem; color: #475569; }
+  .chip strong { color: #1e293b; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  thead { background: #f1f5f9; }
+  th { padding: 12px 14px; text-align: left; font-size: 0.8rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .04em; }
+  td { padding: 12px 14px; border-top: 1px solid #f1f5f9; font-size: 0.88rem; vertical-align: middle; }
+  tr:hover td { background: #f8fafc; }
+  .rank-num { font-weight: 700; color: #94a3b8; font-size: 1rem; width: 40px; text-align: center; }
+  .rank-num.top3 { color: #f59e0b; }
+  .company-name { font-weight: 600; color: #1e293b; }
+  .job-title { color: #3b82f6; }
+  .salary { color: #16a34a; font-weight: 600; font-size: 0.85rem; white-space: nowrap; }
+  .score-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .score-bar { height: 6px; border-radius: 3px; flex: 1; background: #e2e8f0; max-width: 80px; }
+  .score-bar-fill { height: 100%; border-radius: 3px; }
+  .score-num { font-weight: 700; font-size: 0.9rem; min-width: 36px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+  .skills { display: flex; flex-wrap: wrap; gap: 4px; }
+  .skill-tag { background: #eff6ff; color: #3b82f6; padding: 2px 7px; border-radius: 4px; font-size: 0.75rem; }
+  .link-btn { color: #6366f1; text-decoration: none; font-size: 0.8rem; white-space: nowrap; }
+  .link-btn:hover { text-decoration: underline; }
+  .no-results { text-align: center; padding: 60px 20px; color: #94a3b8; }
+  .sub-scores { font-size: 0.75rem; color: #94a3b8; margin-top: 3px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>岗位搜索结果 · Python工程师</h1>
+  <p class="meta">生成时间：2026-07-02 14:36:55</p>
+
+  <div class="summary-bar">
+    <div class="chip">城市：<strong>福州</strong></div>
+    <div class="chip">结果数：<strong>20</strong></div>
+    
+  </div>
+
+  
+  <table>
+    <thead>
+      <tr>
+        <th>排名</th>
+        <th>公司</th>
+        <th>岗位</th>
+        <th>薪资</th>
+        <th>要求</th>
+        <th>技能标签</th>
+        <th>综合分</th>
+        <th>匹配</th>
+        <th>链接</th>
+      </tr>
+    </thead>
+    <tbody>
+    
+    <tr>
+      <td class="rank-num top3">1</td>
+      <td>
+        <div class="company-name">福州达砾森贸易</div>
+        
+        <div class="sub-scores">进出口贸易 · 20-99人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">python工程师</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">8-10K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        0年以上<br>
+        
+        本科
+      </td>
+      <td>
+        <div class="skills">
+          <span class="skill-tag">运维开发经验</span><span class="skill-tag">影刀RPA</span><span class="skill-tag">Python</span>
+          
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/71291f5f0212f29a03N629-6GVdW.html?lid=6wdMjJLJdBg.search.1&amp;securityId=5emwPrn1yCVve-81qhOMufaVx4vJb0kquoYtxlZ6g2k4Y4xSV92IaE-QSQlfFEMLho-SjZboIknmQn5acLRNydJX4JL6ny-yHv2cnIZ7TaXe2RIz6OIZDUUDa2i3NmX6qb6eg-gDsqaXOPIK4GAV2KwbghtIAMjvkJV9lSJXalERQqr3jgvHMkZp5UEHqLWy6PzuILV24W9t9cgYgFg6rqBV42fFwia0k3-NUHYwIm8Jpx3xTFrfGB_GcA77o7JU2mUZJ0mS_L5ffq7hxExtJ5EFVe0P_K8O9oMnkco34htMZHULM33qdcgqrMtGLV823A~~" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/a2f343275b3ac75e0Xd439i1GVM~.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num top3">2</td>
+      <td>
+        <div class="company-name">联合木业</div>
+        
+        <div class="sub-scores">进出口贸易 · 100-499人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">python助理工程师  五险一金 周末双休</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">5-6K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        1-3年<br>
+        
+        本科
+      </td>
+      <td>
+        <div class="skills">
+          <span class="skill-tag">Python</span><span class="skill-tag">Docker</span><span class="skill-tag">Nginx</span><span class="skill-tag">MySQL</span><span class="skill-tag">Redis</span>
+          <span class="skill-tag">+1</span>
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/1a054147413a722e03x83N28FFpY.html?lid=6wdMjJLJdBg.search.2&amp;securityId=AyV25Kfypw5EH-N1QnvfLVMz6oSfs9x3RYWdI5mq5mXiQTt1M4F1dhm2t0By7y33qM3dmLlvUobpLXCHRCEu65pDdF-OcL7z9Xz0kTrShvBeUJWTiDhCAzDokiAghcTrc3Zy8F7RowmK92F_cimIBcZ-coo3aCn_t-fwvaDDKNge_zHXgzRcPl34HqPDaXnmVjZcIm2tsqsVTTkJXRGMmgPq4FHmpRipdWMNpGfghWx8O2ks2s2glh9XL_g3GuaWZsFIsgn6l4tq29EJkqHZ3BF5gE9WIa3cO6_3Srv2qLsIZ6uSEF6vKjWaR-H2RCq-b6Q~" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/4527e5f860ebd00c1XN-0tW6FVY~.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num top3">3</td>
+      <td>
+        <div class="company-name">伊隐文网络科技</div>
+        
+        <div class="sub-scores">电子商务 · 100-499人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">数据分析师（Python方向）/ 电商数据分析师</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">9-13K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        0年以上<br>
+        
+        大专
+      </td>
+      <td>
+        <div class="skills">
+          <span class="skill-tag">Power BI</span><span class="skill-tag">Python</span><span class="skill-tag">SQL</span><span class="skill-tag">电商</span>
+          
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/5787d1b271639c8b0nZy39y1FltR.html?lid=6wdMjJLJdBg.search.3&amp;securityId=_hU5vGmkDskBE-k14HBMUnr2WvgIUe3UDlHB4L5rAcQetXsrss79nxIdm9juAE1SITx0jh9nrSPhMkDm6OtfH_SdP3FiAv6z58QfReTqbFigqlqwN7WN6wVLMiIddSyKy3e_M7v8K3OqGkcZa99ExA9NUDsBuu5knbZzyimDRG39JVXSt9KLR6u_nmeOtl-76hoMiaTQbX7x54fBkUO26Jhu-17vT9lsN4WMW4Wk5xeizCbcdwhvGFpl6h4DcPxefPOxbfN4FPsu9jJATYAkOxW-EQp4XH30aAkBR2Yahpg~" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/08d3892d3f6b02e90nJ529-8GFdY.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num ">4</td>
+      <td>
+        <div class="company-name">齐飞未来科技</div>
+        
+        <div class="sub-scores">互联网 · 20-99人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">python自动化测试</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">100-150K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        0年以上<br>
+        
+        本科
+      </td>
+      <td>
+        <div class="skills">
+          <span class="skill-tag">Python</span>
+          
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/795e97490432f5260nZ82tm0EVBV.html?lid=6wdMjJLJdBg.search.4&amp;securityId=aTLt4Xre2zKgb-t1LBeYOkf4RUJt9YhyPUUrGIlx7BSJh03iKQLp0PCDTvm7zDISJPXhu81bUIwl9Xgpq-Al1WM0keE2n1aNK7HYO3gI_MVWvjhbQa8eC8mh97AAvir0CYcxb8KtVsfW690kjXigPz_yQ0a3rNtsActddlOsHJCvO8hqrNZWsojrOCOYRxQf4fgh_rN0CiFzwZ-NZsNCNRTkbghE_LQtSrnBEUEoXTosezpmn2RQ8NLsfml_7x9sWTVsWe68kSYeN7jWzx0OgyEYfMirVJGvoYAleGgrZ5jJ0trX7BGsRB30XDorZWeQOQ~~" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/d1e678dfe55d35d70XR_3N6-FlA~.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num ">5</td>
+      <td>
+        <div class="company-name">东西乐活科技</div>
+        
+        <div class="sub-scores">互联网 · 100-499人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">python开发工程师-双休/弹性工作制/福利佳</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">8-13K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        1-3年<br>
+        
+        本科
+      </td>
+      <td>
+        <div class="skills">
+          <span class="skill-tag">消息列队</span><span class="skill-tag">负载均衡</span><span class="skill-tag">Django</span><span class="skill-tag">PostgreSQL</span><span class="skill-tag">SQLAlchemy</span>
+          <span class="skill-tag">+1</span>
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/bef2b4345132b5e60nd83928GFNQ.html?lid=6wdMjJLJdBg.search.5&amp;securityId=hvAmiv3IJqNJr-e1p4t3WC267bZkqS3VNcJxAe4MWKOY25faN0uFIo2jOABTD79JDTkDoFgZ0fqIelncEShYDWWNAZroigs5ZfASu18bIaWhAEMI81VWDbF1RhcgbzlLSfbwGJg2niGCllmMkG-nwau14iOZjNiqhLj4Hurbn8XvPV_m0Uu9gO36XH_T0IRpLgISKkzQbZlxb2iePvksaWDMyIJ8qpVjEylhaqJl4mtLvL4IHhu0SZjT740Q1yFt-BCRo14vxMW8xmFQ9iiOCgv7kcZfAI6Fo2XhAuuOWXPUUs5_KjHZHlaeEjvqXrJXC2cc" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/fd20981bd1960c8f1nV42NS1F1VS.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num ">6</td>
+      <td>
+        <div class="company-name">魔方网表</div>
+        
+        <div class="sub-scores">企业服务 · 20-99人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">兼职Python 高级开发工程师</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">10-15K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        3-5年<br>
+        
+        本科
+      </td>
+      <td>
+        <div class="skills">
+          <span class="skill-tag">Python</span>
+          
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/b862e9e5da19cc5d03R_3N6_FVZW.html?lid=6wdMjJLJdBg.search.6&amp;securityId=vVczf3be2sG4--n1EqhdOeUMzzzGohJCNh-vIlnE2-9s23elyJ-5ylRE8zTBpDNZaBNLvQk_35tE4YqcChvzlpzwBBDcGvROjia2N0vH15_q_JkDXMAqDBy8ZHqIABg9iMIeloCRR2gRBfx9xuFXR9vHQX0Kba_pM_C_oijBGiAc0QUs3gJWoXTH0KRqut1YBSqsOwIwk7iu8y_2mmkC83GtB6xATjOxnD6mF-IbC_9HuzHkJo9ERzK1MYjGMpsXa_uAEaHG7bvnOfHBEFdfaHZG9356YaH-3LYpU-AKk-d2q2nnx2hqWB3l6nfV8rzXgJI~" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/2d5102e80f5003741HN-29-1EFY~.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num ">7</td>
+      <td>
+        <div class="company-name">天津君驰远商贸</div>
+        
+        <div class="sub-scores">其他专业服务 · 20-99人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">python工程师</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">100-120K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        1-3年<br>
+        
+        本科
+      </td>
+      <td>
+        <div class="skills">
+          <span class="skill-tag">Python</span><span class="skill-tag">Java</span><span class="skill-tag">C++</span>
+          
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/d5924478e05fcb511Hd93t29EVRQ.html?lid=6wdMjJLJdBg.search.7&amp;securityId=tPeoIkSt3wlgQ-B1ml6etrTJ2Ydiht2GW41ULnLSj82iCxF6eV1Fud9QaaTzXOAIMCkUwqwN40j_honoG-adaN6OgDYZacYg3kgn1viwB_3Q7yOy3fHUwFdznD4RkjyRKtUwiCKADrpnFr2OvYP7aXVoEWhFt5wXFlO8D7NTNNj8xkZEowpHy0pnaTumBCss_-7NX8fhhN9jqMB_RUNCtnKWf4uxsur6-9Bn_TM2yz7Uao9xi4wtMts4OW_P2JoxKcKb_mB3dQmzcHgmrZtHZVvdcNuNUjOfpcRA0f_lSIQ~" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/58979866db48b53a0Xd-3Ny6EFJR.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num ">8</td>
+      <td>
+        <div class="company-name">掌中云</div>
+        
+        <div class="sub-scores">互联网 · 1000-9999人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">高级php工程师</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">15-20K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        3-5年<br>
+        
+        本科
+      </td>
+      <td>
+        <div class="skills">
+          <span class="skill-tag">PHP</span><span class="skill-tag">PHP开发经验</span><span class="skill-tag">计算机相关专业</span>
+          
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/9f457a1c11c10eea0nF-2d-_E1RQ.html?lid=6wdMjJLJdBg.search.8&amp;securityId=5nrJZlqT2c2sa-g13cvjSefGT80L4BUVMoOZcajQAv-Q0gK58L2D5d6RQ1wVVAi6wXQuuDjQOQ0LUXjauD-1qEOoCqWFwxLDhfGQn81j9U_mFk-qMzqaz2jnrH7SBLVeflogdNLoNPhkziFJU40ZZbcq1QJUcyGpfpjwtPvXvIhc205-rtvz83dIZkrFVT856zIH7FFCjrFU_ubwql1f8X6rf1PeaDU9NC0fcY1AE7uBwjypgbZk4G8AFBtfKaIH1522LDPt5ZqWl7bacg8Gm2iR_bSJ8YN77VgtPDh-vrMKBNKeb9XI6i6bJ839_4kcfxk~" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/21752e2525c95ebc0nJ62dq6EVpV.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num ">9</td>
+      <td>
+        <div class="company-name">福州纽桥贸易有限公司</div>
+        
+        <div class="sub-scores">电子商务 · 20-99人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">python开发实习生</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">4-6K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        0年以上<br>
+        
+        本科
+      </td>
+      <td>
+        <div class="skills">
+          <span class="skill-tag">Python</span><span class="skill-tag">Django</span><span class="skill-tag">Flask</span><span class="skill-tag">Tornado</span><span class="skill-tag">MySQL</span>
+          <span class="skill-tag">+2</span>
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/75a1b3a6b4a183650nB73tq7GVdZ.html?lid=6wdMjJLJdBg.search.9&amp;securityId=Zy54ahB726BMX-J1JZUH5WFgfc2nWwrd5FqAqxKyhVnghAtNkcDxSUcqusuHD6HfSlHbI4iz0DLy0lbys1VghHXuMFa9QnUuydhk28VrlMuucz1RvV5JEGuDXGk28R63wYDAEdQA1UiPNWQgbi3s04KQkviCsc_0oVYu9LmkuJboRwsQwtE_S5V4RM6t_4B6hzNcL56MGex49lb_SH9i70lF3nUyJ7ZW8jGPd1c6Et2fZKPG95jIAS6kKeWlgyZRVIsvDUTf6SnG-f66F2tBePynEVvwRWX3NXePTahyCwQ~" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/86d33da71b8bfd7c1nR43tq-GFZR.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num ">10</td>
+      <td>
+        <div class="company-name">点点互动</div>
+        
+        <div class="sub-scores">游戏 · 1000-9999人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">网络工程师（年度旅游）</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">15-25K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        3-5年<br>
+        
+        本科
+      </td>
+      <td>
+        <div class="skills">
+          <span class="skill-tag">有网络工程师经验</span><span class="skill-tag">Python</span><span class="skill-tag">甲方企业</span><span class="skill-tag">不需要出差</span><span class="skill-tag">3到5年网络工程师经验</span>
+          <span class="skill-tag">+1</span>
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/3ebf881ed7c3f2770ndy39--GFNT.html?lid=6wdMjJLJdBg.search.10&amp;securityId=aSNR4GUuOi3Pd--12XT6bpUSd9iaMYq90uv_6SjPs41fz34kmdwygJgd_dgaw_4fgBp6ZeZ6uTKcNm5lfT6fVYW3jfJ9QgOsk3k-yRYAvyei6fOU_wbOFNXIeo_YN8vaaprKcDfzRMWLDZDrsPcfmy9Z5YnQPNaTikD_vrPw505VMoDKnNR-Xdv_3dD6BT22ZKI7xvdCR8EsagvdesnO-3D2At36u7V40V56Fz_cUzOIBwb_9Ompi8LyqZXLZb0Vi-j6bliZOet5qmivjSa4ZGw1v4R14B9JnwflBLMWuGIWnajqbbx4J0visTXqXqGGqiUD" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/cf1bd2df9a2b1be51nR63t29FlVZ.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num ">11</td>
+      <td>
+        <div class="company-name">万朝实业</div>
+        
+        <div class="sub-scores">电子商务 · 20-99人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">python数据分析师</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">6-11K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        1-3年<br>
+        
+        本科
+      </td>
+      <td>
+        <div class="skills">
+          
+          
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/6acbe48359cac83503V82tW9ElFU.html?lid=6wdMjJLJdBg.search.11&amp;securityId=wphUVWkBfgqtL-K1a2c4uiJ_3JILcrMJjmfl8V2gzOGHhiaRIkgGSYOJgZhCrll_Z2_flFHelhN6peeXBGzvgIja30DyvIc0JHCknj_ztX9DRIXGbG2w1_HxOMt4OX5_sS0pS9jeW1TNlxkpXHTNxVqn3ZpMpJfFKIANseTuAB8WMuXYr_oaxf_7YGC392v_8navFXn8_MTTSRsexuuOJwXBC8lTx9-3S8M9iS-7qpYT_vznL9yWjqTM9SXpE0q91MeR408upG8oKjPb5XkUo0skubSCXRiHjF9Iljkhj2PMFqSxfP6I9wFNJbsxU7SHvw~~" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/3d42af9d1fb52a000HF43NW6GFs~.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num ">12</td>
+      <td>
+        <div class="company-name">大富翁科技</div>
+        
+        <div class="sub-scores">计算机软件 · 0-20人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">python高级开发工程师</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">6-10K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        1-3年<br>
+        
+        本科
+      </td>
+      <td>
+        <div class="skills">
+          <span class="skill-tag">量化交易开发经验</span><span class="skill-tag">Python</span>
+          
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/bb0a0a279411f0f00nd_3968E1FR.html?lid=6wdMjJLJdBg.search.12&amp;securityId=snt3GTrOo2Uje-X1QX_2PN0P4Si7V-p07s6DjHpJrp53ojWtxajrJHczMNAr82D_58ee9TWCx05855EQdZAEZH-XlXgd7Ns2AVgpicUVrnzgU5UhDrBYclIfxpOOGd4On31VNF3YuZDQgbjrhRGjU5z-7akmtzLC1GBhiz6i297e5qjiGAZOK8FqpDuUPsUhaEix18hAVEq7xt2GJQP5K5MGLb7aTTSnyjuvvyEqPkJ_oQaOS6HZ2O9si6fOvczJ8TdA0aptvi3R6cYVQaBOKsZA0Fhi5aZEdUItInVQLfo~" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/5b0246c65735f31b0nJz3dq-FlFW.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num ">13</td>
+      <td>
+        <div class="company-name">福州长乐首占小七...</div>
+        
+        <div class="sub-scores">文化艺术/娱乐 · 0-20人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">兼职Python</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">300-350K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        1-3年<br>
+        
+        硕士
+      </td>
+      <td>
+        <div class="skills">
+          <span class="skill-tag">Java</span><span class="skill-tag">团队管理经验</span><span class="skill-tag">Scrapy</span><span class="skill-tag">C++</span><span class="skill-tag">PostgreSQL</span>
+          <span class="skill-tag">+7</span>
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/db3278c00f076a8b1HN-3t-5E1JS.html?lid=6wdMjJLJdBg.search.13&amp;securityId=TfMkxPdxrtoPW-V15l5V3kXicgGnqbwsrp-QIT0aJ_CALGZxcNgHCi6MJ74fIvUh7uRQ7QnwPMVS9aH1laNhsxQy53hveJ_fEQeKl9DZHaAtQOBzQ8Qq8nn6p-x7LdjULorTrnnoIvNsB3-6NuhZUzVWRa8QeD49VxMYnACEZoX2qaRVTyT8cRIiDcKNXHszz8zizyNjV89dEVUqoNpyinz5yY4dGI3dQ1s3aBqTtew0P0hnI_1jjx7_iyuU5Euk14a2f4tF1yqT_3Uda8MaVxtByw-sRMXiUzBermQ3QJk~" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/ea13c2a7801fed700XJz09-_FFtS.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num ">14</td>
+      <td>
+        <div class="company-name">福州市九丰智选科技</div>
+        
+        <div class="sub-scores">电子商务 · 20-99人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">大量招全职-python爬虫</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">4-5K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        0年以上<br>
+        
+        大专
+      </td>
+      <td>
+        <div class="skills">
+          
+          
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/187ccc87c3b86de60nB73t26EFpX.html?lid=6wdMjJLJdBg.search.14&amp;securityId=50TTUn_iimnh6-81IbQOPjL6TgN7aWQHxeTHJ5Jyjkc-q2Fht33VTjaIlvrYSbj-uWu3zJMXVdvM6221N2KlR7NhGgSpIJ2CklAwksns4kx4ive93C7t-DBY9y1-j1hG-vk9xYqvW45uGVtL5vUQyDgsIRsse4gTHF5zQX2vuWEX0C7QRFhXzCdjnlzv6k6FuTgT3AfPgggMwOROcmPKXpDAGcSUDShEWJZSXE2hLEOhZLQ_omEkXy95fmab-2sb9vCCQIlE0_tXvSHIVPW32StFeQ_GuWYaU5ROywMimQ6NY6xEWuSFvjUhzX4RGaoXNVUv" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/dd419c3b440595b30Xx839W0ElpZ.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num ">15</td>
+      <td>
+        <div class="company-name">福州千言智能科技</div>
+        
+        <div class="sub-scores">互联网 · 0-20人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">python开发工程师（接受出差 大小休）</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">7-12K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        0年以上<br>
+        
+        本科
+      </td>
+      <td>
+        <div class="skills">
+          <span class="skill-tag">爬虫经验</span><span class="skill-tag">PyTorch</span><span class="skill-tag">MySQL</span><span class="skill-tag">机器学习经验</span><span class="skill-tag">MongoDB</span>
+          <span class="skill-tag">+6</span>
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/36dfa7ba81a83f3f03Z53Nm0EFRU.html?lid=6wdMjJLJdBg.search.15&amp;securityId=eMeIs4a11ggrD-m1Td41kUWdCyVtYCWwuuXyKWakUYoQJZWe52YSb3s8yL6BZzAqfhHDLZ0_86MAYrEX7YBORC_EoFaWczl3De8PEr_stloQoZm9AFBeOz7TriwPplx6mF1TXBAxvvO9WleHGn687aH69ytsbVZEJioi2YoSzNCuEP13BNvk4Nv9X5ZoAwXZD3izRhHfkB_wTWi2KSAReq_2c3v1RSRHYeCYrrfiJtfJHFWXnm15VSur2OTHDh3NMl5Hcy6AoBVPqqGQOHrxeWtKXczaHBHjB3mMyFSDVPk~" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/c81f51ca82fde47e0nF409y0GVJT.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num ">16</td>
+      <td>
+        <div class="company-name">某中型专用设备公司</div>
+        
+        <div class="sub-scores">专用设备 · 100-499人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">研发工程师</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">20-22K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        3-5年<br>
+        
+        大专
+      </td>
+      <td>
+        <div class="skills">
+          
+          
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/ee0c03675cfeb7b60nF52N67FVdS.html?lid=6wdMjJLJdBg.search.16&amp;securityId=MsBF8UFTmx-LM-B1t0vOxY6P32QOMUDFw2pja3RrzajqjrgS-BxMzVQKzKOa71284K_MNfgjZm7VjrIBhGGvxQiraOv5-8cmSi9H3Hr_4y5Oc5sHJTG3CU3Y31GxB_5ZcE_QmmceokxM0rDaeyozznbeoUHj0GC7dSiOPxHd6Xl-0VH8hnKwm3Q1QRP-5myPLL-qHqb2snSjqfIq9B9dcG7oZqc5UajWa2cdv75b0t0kdUGb_UY081Ewyz4THDqzU0bdcLLrD5ly0TEXKwqROtEt7mfFd-g_Rl91KfDoeSFyLOv-UbUcnr7ZYv7CFFvDT24~" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/67df6af1fdedc9ae0nR-3di4ElZW.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num ">17</td>
+      <td>
+        <div class="company-name">YESOUL野小兽</div>
+        
+        <div class="sub-scores">互联网 · 100-499人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">初级运维工程师</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">10-15K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        0年以上<br>
+        
+        本科
+      </td>
+      <td>
+        <div class="skills">
+          <span class="skill-tag">系统运维</span><span class="skill-tag">运维开发/DevOps</span><span class="skill-tag">Nginx</span><span class="skill-tag">Kubernetes</span><span class="skill-tag">Docker</span>
+          <span class="skill-tag">+2</span>
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/882e65d383171f140nF53d--GFFX.html?lid=6wdMjJLJdBg.search.17&amp;securityId=GY4P_C_aAisYw-61C9641CDyd5JNbEMtvOfTp3AZMCegb4Y-H26YJnXRhNHenpS6WY7w9YNd3AVUXo0Me8_io3Hsv5YvsBPNLXLIkFXDVgLwlGlIEGcQfQNVLDpSKGSt3Y_OeTyGwUvPOtqs-zPpVznjnjE5yrY5lIGdQa1uw0ghbzPo3hUxKFl38qSQUk-gFzEczRHMRFiWsws7qIyPmPTfBrOJDcX_fAbFjr3UHHCA-juMq0g_TKsYPnU1xC2PH1FwHBteFKNshKewMS1_EQcpMVKAml8uTybEkF94MxLKM2V9iTioakz7mQq7St4cVCc~" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/09356add4d614ec60HB62du9EFVT.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num ">18</td>
+      <td>
+        <div class="company-name">成都曦和云创科技</div>
+        
+        <div class="sub-scores">互联网 · 20-99人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">PHP开发工程师</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">13-25K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        5-10年<br>
+        
+        本科
+      </td>
+      <td>
+        <div class="skills">
+          
+          
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/a95102611ab39e4c0nZz29u6EFBY.html?lid=6wdMjJLJdBg.search.18&amp;securityId=HnE7BX9oM0qJB-P14ujuxQcKJe5pAy3Kj-BF1zmLpK19s_KOCyWsbPl4RVVVooB_TbNuTwy6x2UeMF0PAJLzKTMYUp3RmkzttPtsSzEJrVtTdOeRp466Ik-pl0RRA0cdFZd_jf46W-wVbqVrWMoRJEVKpaYcDqEkFEgeoHWvmiYBBRJYqTBu2RaOG30aVQWX8KC1YRsR-ATgZYRHR-5XfnvjRKZuxks9_D2imorL6a4AvxKzxkwScx7uxZkq3eUcPvbDSTIRAfecE2NHJphdTjRcIPMfMzPlmKoRuyDKV0AkERR0UrfHKXi8OTNo0pRYRr29" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/4b6e76bb2ea7549c0HF70tW8GFZV.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num ">19</td>
+      <td>
+        <div class="company-name">北京某大型人力资源服务公司</div>
+        
+        <div class="sub-scores">人力资源服务 · 1000-9999人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">电池DQE工程师</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">21-26K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        1-3年<br>
+        
+        本科
+      </td>
+      <td>
+        <div class="skills">
+          
+          
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/f084a5c5013f4c220nB-3d67GVFZ.html?lid=6wdMjJLJdBg.search.19&amp;securityId=cMM09ew1_tscC-A1JPQwsWNpXdfHZEDg6WRhmWv_tL22bZTjvbRVX8NfjAd7H34SzfHKrrCrJhcy7C2Gs8KkDxaahByhUHD4gR7Q1GpvQrouESR84Qr43ZmVpJZydA-PI4GGBlAmqE942NuEVpwVJX4NHq0he7Jr9FodV3_wzfhEfGwQrJ2Z7d-XyPw1LO1ET2O83YHqGMVehNEhBI4W5flvxp9Xl816QH4zzvg-Z9j0pMso4lOh-9DYV6ely-9_xkuZHaeApSHtewPR-j45tNcOlKiJ4xJrXkDw2cWHoQ~~" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/d74b21a088cc40cd03Jy2t28EVE~.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="rank-num ">20</td>
+      <td>
+        <div class="company-name">嘉为科技</div>
+        
+        <div class="sub-scores">计算机服务 · 500-999人</div>
+        
+      </td>
+      <td>
+        <div class="job-title">高级python研发工程师</div>
+        <div class="sub-scores">福州</div>
+      </td>
+      <td class="salary">16-25K/月</td>
+      <td style="white-space:nowrap; font-size:0.8rem; color:#64748b;">
+        
+        3-5年<br>
+        
+        本科
+      </td>
+      <td>
+        <div class="skills">
+          <span class="skill-tag">团队管理经验</span><span class="skill-tag">Django</span><span class="skill-tag">MySQL</span><span class="skill-tag">Kafka</span><span class="skill-tag">Redis</span>
+          <span class="skill-tag">+4</span>
+        </div>
+      </td>
+      <td>
+        
+        
+        <span style="color:#94a3b8; font-size:0.8rem;">未评分</span>
+        
+      </td>
+      <td>
+        <span class="badge" style="background:#ef444420; color:#ef4444;">不推荐</span>
+      </td>
+      <td>
+        <a class="link-btn" href="https://www.zhipin.com/job_detail/b81c0bb468d37f810nB529-1F1RQ.html?lid=6wdMjJLJdBg.search.20&amp;securityId=fz3DlL-UVvWuQ-R1mxRnuPO69FeVj7oD6EPP26T8aPm-7XqG0RT9eb6MS6l_o9xcx-LEG20tukVYdBeiy5L0Tg50COwx675-eqBGeBKFz5-wBBnPVVWDu1XIV1RT_euFdCNoiedn5D8uVuY-rokw4K-TW579mtq-SYzI4NA3gyicPogpsEuYlp-TtQT-ef1gJ2-HOroxjMFMtVI9sUWQpsZqC4ISX7O0OcZm6ZBsGCGYNG3tqWXmPwovq5pkKRTMWgZVp-GoDhsccWvWFnN7zT60NaaepEzYdDiZlPB2dD-Bck5nyW1HOTwdckjBF_kyIQ~~" target="_blank">岗位</a>
+         <a class="link-btn" href="https://www.zhipin.com/gongsi/c8314c83a7ccb48533V60t65FlE~.html" target="_blank">公司</a>
+      </td>
+    </tr>
+    
+    </tbody>
+  </table>
+  
+</div>
+</body>
+</html>

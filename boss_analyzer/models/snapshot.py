@@ -66,5 +66,6 @@ class JobChange:
             "salary_changed": "💰",
             "hr_active": "✅",
             "stale": "🟡",
+            "frequent_update": "🟠",
         }
         return icons.get(self.change_type, "➖")

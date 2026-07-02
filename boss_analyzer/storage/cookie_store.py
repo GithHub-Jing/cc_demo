@@ -32,11 +32,31 @@ def save_cookies(cookies: dict) -> None:
     logger.info(f"Cookie 已保存: {_COOKIE_FILE}")
 
 
+def extract_cookies_from_browser(page) -> dict:
+    """Extract cookies from DrissionPage across supported API versions."""
+    try:
+        raw = page.cookies(as_dict=True)
+    except TypeError:
+        raw = page.cookies(all_domains=True, all_info=True)
+
+    if isinstance(raw, dict):
+        return {k: v for k, v in raw.items() if v}
+
+    cookies = {}
+    for item in raw or []:
+        if not isinstance(item, dict):
+            continue
+        name = item.get("name")
+        value = item.get("value")
+        if name and value:
+            cookies[name] = value
+    return cookies
+
+
 def save_cookies_from_browser(page) -> dict:
     """Extract cookies from a DrissionPage browser session and persist them."""
     try:
-        raw = page.cookies(as_dict=True)
-        cookies = {k: v for k, v in raw.items() if v}
+        cookies = extract_cookies_from_browser(page)
         if cookies:
             save_cookies(cookies)
         return cookies

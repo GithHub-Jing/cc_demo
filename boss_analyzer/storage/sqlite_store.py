@@ -95,6 +95,18 @@ class JobStore:
             ).fetchall()
             return [dict(r) for r in rows]
 
+    def get_snapshot_history(self, company_name: str, job_url: str, limit: int = 8) -> list:
+        with self._connect() as conn:
+            rows = conn.execute(
+                """SELECT *
+                   FROM job_snapshots
+                   WHERE company_name=? AND job_url=?
+                   ORDER BY id DESC
+                   LIMIT ?""",
+                (company_name, job_url, limit),
+            ).fetchall()
+            return [_row_to_snapshot(r) for r in reversed(rows)]
+
 
 def _row_to_snapshot(row: sqlite3.Row) -> JobSnapshot:
     return JobSnapshot(

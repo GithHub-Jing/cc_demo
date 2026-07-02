@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from boss_analyzer.models.snapshot import JobSnapshot, JobChange
 from boss_analyzer.config import STALE_DAYS
 
@@ -7,6 +8,7 @@ def detect_changes(
     old: list,  # list[JobSnapshot]
     new: list,  # list[JobSnapshot]
     detected_at: str = "",
+    recent_history: Optional[dict] = None,
 ) -> list:
     if not detected_at:
         detected_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -107,5 +109,39 @@ def detect_changes(
                 detected_at=detected_at,
             ))
 
+        history = recent_history.get(url, []) if recent_history else []
+        if _is_frequently_updated(history):
+            changes.append(JobChange(
+                job_url=url,
+                company_name=snap.company_name,
+                job_title=snap.job_title,
+                change_type="frequent_update",
+                change_label="招聘频繁更新",
+                old_value=f"近 {len(history)} 次快照",
+                new_value="薪资/描述/HR 活跃状态多次变化",
+                severity="warning",
+                detected_at=detected_at,
+            ))
+
     changes.sort(key=lambda c: (c.severity_order, c.change_type))
     return changes
+
+
+def _is_frequently_updated(history: list) -> bool:
+    if len(history) < 4:
+        return False
+
+    signatures = []
+    for snap in history:
+        signatures.append((
+            snap.salary_min,
+            snap.salary_max,
+            snap.description_hash,
+            snap.hr_active_days,
+        ))
+
+    transitions = sum(
+        1 for before, after in zip(signatures, signatures[1:])
+        if before != after
+    )
+    return transitions >= 3

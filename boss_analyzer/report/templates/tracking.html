@@ -19,6 +19,7 @@
   .card.new .card-num   { color: #22c55e; }
   .card.offline .card-num { color: #94a3b8; }
   .card.changed .card-num { color: #3b82f6; }
+  .card.frequent .card-num { color: #f97316; }
   .card.stale .card-num { color: #f59e0b; }
   .first-run { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px;
                padding: 20px 24px; color: #1d4ed8; margin-bottom: 20px; }
@@ -73,6 +74,10 @@
     <div class="card changed">
       <div class="card-num">{{ (changes | selectattr("change_type","eq","description_changed") | list | length) + (changes | selectattr("change_type","eq","salary_changed") | list | length) }}</div>
       <div class="card-label">🔵 岗位有更新</div>
+    </div>
+    <div class="card frequent">
+      <div class="card-num">{{ changes | selectattr("change_type","eq","frequent_update") | list | length }}</div>
+      <div class="card-label">🟠 频繁更新</div>
     </div>
     <div class="card stale">
       <div class="card-num">{{ changes | selectattr("change_type","eq","stale") | list | length }}</div>

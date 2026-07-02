@@ -9,7 +9,7 @@ from boss_analyzer.scrapers.boss_api import BossApiClient
 from boss_analyzer.scrapers.tianyancha import TianyanchaScraper
 from boss_analyzer.scrapers.search_engine import SearchEngineScraper
 from boss_analyzer.storage.cookie_store import (
-    has_cookies, save_cookies_from_browser, cookie_file_path,
+    has_cookies, save_cookies_from_browser, cookie_file_path, extract_cookies_from_browser,
 )
 from boss_analyzer.analyzers.legitimacy import evaluate_legitimacy
 from boss_analyzer.analyzers.freshness import evaluate_freshness
@@ -105,6 +105,9 @@ def track(
     fast: bool = True,
     output_path: str = "",
     db_path: str = "",
+    position: str = "",
+    city: str = "全国",
+    limit: int = SEARCH_LIMIT,
 ) -> None:
     now = datetime.now()
     run_id = str(uuid.uuid4())[:8]
@@ -112,16 +115,27 @@ def track(
 
     logger.info(f"开始追踪: {query} (run={run_id})")
 
-    boss = BossScraper(headless=headless, fast=fast)
-    result = boss.scrape(query)
-    company = result.get("company")
-    jobs = result.get("jobs", [])
+    if position:
+        company_name, jobs = _search_company_jobs(
+            company_query=query,
+            position=position,
+            city=city,
+            limit=limit,
+            headless=headless,
+            fast=fast,
+        )
+        company = None
+    else:
+        boss = BossScraper(headless=headless, fast=fast)
+        result = boss.scrape(query)
+        company = result.get("company")
+        jobs = result.get("jobs", [])
+        company_name = company.name if company else ""
 
-    if not company:
+    if not company_name:
         logger.error("未找到公司信息，追踪终止")
         return
 
-    company_name = company.name
     logger.info(f"采集到 {len(jobs)} 个岗位")
 
     store = JobStore(db_path) if db_path else JobStore()
@@ -143,7 +157,11 @@ def track(
     changes = []
     prev_run_at = ""
     if not is_first_run:
-        changes = detect_changes(prev_snapshots, current_snapshots, captured_at)
+        recent_history = {
+            s.job_url: store.get_snapshot_history(company_name, s.job_url, limit=8)
+            for s in current_snapshots
+        }
+        changes = detect_changes(prev_snapshots, current_snapshots, captured_at, recent_history)
         history = store.get_run_history(company_name, limit=2)
         if len(history) >= 2:
             prev_run_at = history[1].get("ran_at", "")
@@ -163,6 +181,59 @@ def track(
     logger.info(f"追踪报告已生成: {path}")
 
 
+def _search_company_jobs(
+    company_query: str,
+    position: str,
+    city: str,
+    limit: int,
+    headless: bool,
+    fast: bool,
+) -> tuple[str, list]:
+    city_code = CITY_CODES.get(city, CITY_CODES["全国"])
+    if city != "全国" and city not in CITY_CODES:
+        logger.warning(f"城市 '{city}' 不在城市列表，已回退到全国搜索")
+
+    logger.info(
+        f"使用岗位搜索追踪: 公司={company_query}, 岗位={position}, 城市={city}({city_code}), 限制={limit}"
+    )
+
+    pairs = None
+    api = BossApiClient()
+    if api.setup():
+        logger.info("使用 API 模式追踪（已检测到 Cookie）")
+        pairs = api.search_jobs(position, city_code, limit)
+        if not pairs:
+            logger.warning("API 返回 0 条结果，回退到浏览器模式")
+            pairs = None
+    else:
+        logger.info("未找到 Cookie，使用浏览器模式追踪（速度较慢）")
+
+    if pairs is None:
+        boss = BossScraper(headless=headless, fast=fast)
+        pairs = boss.search_jobs_by_position(position, city_code, limit)
+
+    matched = [
+        (company, job)
+        for company, job in pairs
+        if _company_matches(company.name, company_query)
+        or _company_matches(company.full_name, company_query)
+        or _company_matches(company.boss_url, company_query)
+    ]
+
+    if not matched:
+        logger.warning(f"岗位搜索结果中未找到匹配企业: {company_query}")
+        return "", []
+
+    company_name = matched[0][0].name or company_query
+    return company_name, [job for _, job in matched]
+
+
+def _company_matches(candidate: str, query: str) -> bool:
+    if not candidate or not query:
+        return False
+    return query in candidate or candidate in query
+
+
 def _print_tracking_summary(company_name, snapshots, changes, is_first_run):
     sep = "=" * 50
     print(f"\n{sep}")
@@ -179,6 +250,7 @@ def _print_tracking_summary(company_name, snapshots, changes, is_first_run):
             print(f"  🟢 新增: {counts.get('new_job', 0)}  "
                   f"⚪ 下线: {counts.get('job_offline', 0)}  "
                   f"🔵 更新: {counts.get('description_changed', 0) + counts.get('salary_changed', 0)}  "
+                  f"🟠 频繁更新: {counts.get('frequent_update', 0)}  "
                   f"🟡 不活跃: {counts.get('stale', 0)}")
         else:
             print("  ✓ 与上次相比无变更")
@@ -226,11 +298,10 @@ def boss_login(headless: bool = False) -> bool:
     logged_in = False
     while time.time() < deadline:
         url = page.url or ""
-        cookies = page.cookies(as_dict=True) if hasattr(page, "cookies") else {}
-        # Logged-in users have __zp_stoken__ or are redirected away from /user/
-        if cookies.get("__zp_stoken__") or (
-            "/web/user/" not in url and "login" not in url
-        ):
+        cookies = extract_cookies_from_browser(page) if hasattr(page, "cookies") else {}
+        # Logged-in users have a session token. Redirects can happen for visitor pages,
+        # so do not treat URL changes alone as a successful login.
+        if cookies.get("__zp_stoken__"):
             logged_in = True
             break
         time.sleep(2)
@@ -372,6 +443,31 @@ def _add_profile_args(parser):
     parser.add_argument("--salary-max", type=int, default=0, help="期望最高薪资(K)")
 
 
+def _run_track_command(args, headless: bool):
+    runs = max(args.runs, 0)
+    completed = 0
+
+    while runs == 0 or completed < runs:
+        track(
+            query=args.query,
+            headless=headless,
+            fast=args.fast,
+            output_path=args.output,
+            db_path=args.db,
+            position=args.position,
+            city=args.city,
+            limit=args.limit,
+        )
+        completed += 1
+
+        if args.interval_minutes <= 0 or (runs and completed >= runs):
+            break
+
+        sleep_seconds = args.interval_minutes * 60
+        logger.info(f"等待 {args.interval_minutes:g} 分钟后执行下一次追踪...")
+        time.sleep(sleep_seconds)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Boss直聘企业招聘分析工具")
     parser.add_argument("-v", "--verbose", action="store_true", help="详细日志")
@@ -399,6 +495,13 @@ def main():
     p_track.add_argument("--fast", action="store_true", default=True,
                          help="快速模式（默认开启）")
     p_track.add_argument("--db", default="", help="自定义数据库路径")
+    p_track.add_argument("--position", default="", help="按岗位关键词追踪目标企业，如: Python工程师")
+    p_track.add_argument("--city", default="全国")
+    p_track.add_argument("--limit", type=int, default=SEARCH_LIMIT)
+    p_track.add_argument("--interval-minutes", type=float, default=0,
+                         help="定时追踪间隔。默认只执行一次")
+    p_track.add_argument("--runs", type=int, default=1,
+                         help="执行次数；配合 --interval-minutes 使用，0 表示持续执行")
 
     # --- search ---
     p_search = sub.add_parser("search", help="按岗位关键词搜索并排序")
@@ -433,12 +536,9 @@ def main():
     if args.cmd == "login":
         boss_login(headless=getattr(args, "headless", False))
     elif args.cmd == "track":
-        track(
-            query=args.query,
+        _run_track_command(
+            args=args,
             headless=headless,
-            fast=args.fast,
-            output_path=args.output,
-            db_path=args.db,
         )
     elif args.cmd == "search":
         search_positions(
