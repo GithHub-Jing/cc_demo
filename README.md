@@ -69,6 +69,24 @@ python3 -B -m boss_analyzer search Python工程师 --city 福州 --limit 20 --fa
 - 输出细分技能 Top N
 - 同一岗位内重复技能只计 1 次
 
+## 跳槽薪资与档位参考
+
+搜索岗位时追加跳槽参考，结合关键词、公开薪资、工作年限、技能和期望薪资，输出市场中位数、P25/P75、建议谈薪区间、岗位档位和可补强关键词：
+
+```bash
+python3 -B -m boss_analyzer search Python工程师 --city 福州 --limit 20 --fast \
+  --experience 4 --skills Python Django Redis --salary-min 25 --salary-max 35 \
+  --career-advice
+```
+
+输出会包含：
+
+- 公开薪资样本数量、市场中位数、P25/P75
+- 初级/中级/高级/专家等参考档位
+- 建议谈薪区间
+- 薪资和经验同时匹配的岗位数量
+- 已匹配关键词和可补强关键词
+
 ## 公司岗位追踪
 
 追踪某家公司在指定岗位搜索结果中的岗位变化：

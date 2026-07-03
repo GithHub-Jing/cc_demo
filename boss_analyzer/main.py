@@ -15,6 +15,7 @@ from boss_analyzer.storage.cookie_store import (
 from boss_analyzer.analyzers.legitimacy import evaluate_legitimacy
 from boss_analyzer.analyzers.freshness import evaluate_freshness
 from boss_analyzer.analyzers.fitness import evaluate_fitness, evaluate_fitness_per_job
+from boss_analyzer.analyzers.career import advise_career
 from boss_analyzer.analyzers.ranking import rank_matches
 from boss_analyzer.analyzers.tracker import detect_changes, classify_lifecycles
 from boss_analyzer.models.job import UserProfile
@@ -385,6 +386,7 @@ def search_positions(
     output_format: str = "table",
     skill_summary: bool = False,
     skill_top: int = 30,
+    career_advice: bool = False,
 ) -> list:
     city_code = CITY_CODES.get(city, CITY_CODES["全国"])
     if city != "全国" and city not in CITY_CODES:
@@ -474,6 +476,8 @@ def search_positions(
         _print_search_table(ranked, position, city)
     if skill_summary:
         _print_skill_summary(ranked, position=position, top_n=skill_top)
+    if career_advice:
+        _print_career_advice(ranked, profile=profile)
     return ranked
 
 
@@ -582,6 +586,55 @@ def _print_skill_summary(matches: list[JobMatch], position: str = "", top_n: int
         display = [row[0], _clip(row[1], widths[1]), row[2], row[3]]
         print("| " + " | ".join(_pad(cell, width) for cell, width in zip(display, widths)) + " |")
     _print_table_line(widths)
+
+
+def _print_career_advice(matches: list[JobMatch], profile: UserProfile = None):
+    advice = advise_career(matches, profile)
+    print(f"\n跳槽薪资与岗位档位参考 · 样本 {advice.total_jobs} 个")
+    if not matches:
+        print("未找到岗位样本，无法给出建议。")
+        return
+
+    if advice.salary_jobs:
+        print(
+            f"公开薪资样本: {advice.salary_jobs} 个；市场中位数: {advice.salary_median}K；"
+            f"P25/P75: {advice.salary_p25}K/{advice.salary_p75}K"
+        )
+        if advice.ignored_salary_jobs:
+            print(f"已忽略异常薪资样本: {advice.ignored_salary_jobs} 个")
+    else:
+        print("本次结果缺少公开薪资，建议扩大样本后再判断金额。")
+    print(f"参考档位: {advice.level_label}")
+    if advice.recommended_salary_min:
+        print(f"建议谈薪区间: {advice.recommended_salary_min}-{advice.recommended_salary_max}K/月")
+    if advice.target_fit_count:
+        print(f"薪资和经验同时匹配的岗位: {advice.target_fit_count} 个")
+
+    if advice.salary_bands:
+        print("\n薪资档位")
+        widths = [10, 6, 12, 10]
+        headers = ["档位", "岗位数", "薪资跨度", "平均中点"]
+        _print_table_line(widths)
+        print("| " + " | ".join(_pad(cell, width) for cell, width in zip(headers, widths)) + " |")
+        _print_table_line(widths)
+        for band in advice.salary_bands:
+            row = [
+                band.label,
+                str(band.count),
+                f"{band.salary_min}-{band.salary_max}K",
+                f"{band.avg_midpoint:g}K",
+            ]
+            print("| " + " | ".join(_pad(cell, width) for cell, width in zip(row, widths)) + " |")
+        _print_table_line(widths)
+
+    if advice.matched_keywords:
+        print(f"已匹配关键词: {'、'.join(advice.matched_keywords)}")
+    if advice.gap_keywords:
+        print(f"可补强关键词: {'、'.join(advice.gap_keywords)}")
+
+    print("\n建议")
+    for item in advice.suggestions:
+        print(f"- {item}")
 
 
 def _normalize_skill(skill: str) -> str:
@@ -747,6 +800,8 @@ def main():
                           help="汇总本次结果中的技能标签出现次数")
     p_search.add_argument("--skill-top", type=int, default=30,
                           help="技能汇总最多显示多少项，默认 30")
+    p_search.add_argument("--career-advice", action="store_true",
+                          help="输出跳槽薪资、岗位档位和关键词补强建议")
     p_search.add_argument("--no-headless", action="store_true")
     _add_profile_args(p_search)
 
@@ -789,6 +844,7 @@ def main():
             output_format=args.format,
             skill_summary=args.skill_summary,
             skill_top=args.skill_top,
+            career_advice=args.career_advice,
         )
     elif args.cmd == "analyze":
         analyze(

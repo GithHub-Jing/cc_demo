@@ -27,14 +27,32 @@ def fast_random_delay():
     delay = random.uniform(FAST_DELAY_MIN, FAST_DELAY_MAX)
     time.sleep(delay)
 
+
 def parse_salary(salary_str: str) -> tuple[int, int]:
-    m = re.search(r"(\d+)\s*[-~·]\s*(\d+)\s*[Kk千]?", salary_str)
-    if m:
-        low, high = int(m.group(1)), int(m.group(2))
-        if "万" in salary_str:
-            low, high = low * 10, high * 10
-        return low, high
-    return 0, 0
+    salary_str = str(salary_str or "").strip()
+    if not salary_str or "面议" in salary_str:
+        return 0, 0
+    if re.search(r"(元\s*)?/+\s*(天|日|时|小时)", salary_str):
+        return 0, 0
+
+    m = re.search(r"(\d+(?:\.\d+)?)\s*[-~·]\s*(\d+(?:\.\d+)?)\s*([Kk千万])?", salary_str)
+    if not m:
+        return 0, 0
+
+    low, high = float(m.group(1)), float(m.group(2))
+    unit = m.group(3) or ""
+    if unit in ["K", "k", "千"]:
+        pass
+    elif unit == "万":
+        low, high = low * 10, high * 10
+    elif "元" in salary_str:
+        return 0, 0
+
+    if "年" in salary_str and "万" in salary_str:
+        low, high = low / 12, high / 12
+    if high <= 0 or low <= 0 or low > high:
+        return 0, 0
+    return int(round(low)), int(round(high))
 
 
 def parse_experience(exp_str: str) -> tuple[int, int]:

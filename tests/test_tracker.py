@@ -3,11 +3,13 @@ from contextlib import redirect_stdout
 from io import StringIO
 
 from boss_analyzer.analyzers.tracker import detect_changes, classify_lifecycle
-from boss_analyzer.main import _print_skill_summary
+from boss_analyzer.analyzers.career import advise_career
+from boss_analyzer.main import _print_career_advice, _print_skill_summary
 from boss_analyzer.models.company import Company
-from boss_analyzer.models.job import Job
+from boss_analyzer.models.job import Job, UserProfile
 from boss_analyzer.models.ranking import JobMatch
 from boss_analyzer.models.snapshot import JobSnapshot
+from boss_analyzer.utils.helpers import parse_salary
 
 
 def snapshot(url, salary_min=10, salary_max=20, desc="a", hr_days=0):
@@ -105,6 +107,105 @@ class TrackerTest(unittest.TestCase):
         self.assertIn("Django", text)
         self.assertIn("Docker", text)
         self.assertNotIn("| Python", text)
+
+    def test_career_advice_recommends_salary_and_keyword_gaps(self):
+        matches = [
+            JobMatch(
+                company=Company(name="A"),
+                job=Job(
+                    title="Python后端",
+                    salary_min=12,
+                    salary_max=18,
+                    experience_min=1,
+                    experience_max=3,
+                    skills=["Python", "Django", "MySQL"],
+                ),
+            ),
+            JobMatch(
+                company=Company(name="B"),
+                job=Job(
+                    title="高级Python后端",
+                    salary_min=22,
+                    salary_max=32,
+                    experience_min=3,
+                    experience_max=5,
+                    skills=["Python", "Redis", "Docker"],
+                ),
+            ),
+            JobMatch(
+                company=Company(name="C"),
+                job=Job(
+                    title="Python架构",
+                    salary_min=35,
+                    salary_max=50,
+                    experience_min=5,
+                    experience_max=8,
+                    skills=["Python", "Kubernetes", "Redis"],
+                ),
+            ),
+        ]
+        profile = UserProfile(
+            experience_years=4,
+            skills=["Python", "Redis"],
+            expected_salary_min=25,
+            expected_salary_max=35,
+        )
+
+        advice = advise_career(matches, profile)
+
+        self.assertEqual(advice.salary_jobs, 3)
+        self.assertEqual(advice.level_label, "中级/独立贡献者")
+        self.assertEqual(advice.recommended_salary_min, 27)
+        self.assertEqual(advice.recommended_salary_max, 35)
+        self.assertEqual(advice.target_fit_count, 1)
+        self.assertIn("Python", advice.matched_keywords)
+        self.assertIn("Docker", advice.gap_keywords)
+
+    def test_print_career_advice_outputs_reference_sections(self):
+        matches = [
+            JobMatch(
+                company=Company(name="A"),
+                job=Job(
+                    title="Python后端",
+                    salary_min=20,
+                    salary_max=30,
+                    experience_min=3,
+                    experience_max=5,
+                    skills=["Python", "Redis"],
+                ),
+            ),
+        ]
+        output = StringIO()
+
+        with redirect_stdout(output):
+            _print_career_advice(matches, UserProfile(experience_years=4, skills=["Python"]))
+
+        text = output.getvalue()
+        self.assertIn("跳槽薪资与岗位档位参考", text)
+        self.assertIn("建议谈薪区间", text)
+        self.assertIn("薪资档位", text)
+        self.assertIn("已匹配关键词", text)
+
+    def test_parse_salary_ignores_day_rate_and_converts_yearly_salary(self):
+        self.assertEqual(parse_salary("100-350元/天"), (0, 0))
+        self.assertEqual(parse_salary("100-350/天"), (0, 0))
+        self.assertEqual(parse_salary("12-18K"), (12, 18))
+        self.assertEqual(parse_salary("24-36万/年"), (20, 30))
+
+    def test_career_advice_ignores_implausible_salary_outliers(self):
+        matches = [
+            JobMatch(company=Company(name="A"), job=Job(title="实习", salary_min=4, salary_max=8)),
+            JobMatch(company=Company(name="B"), job=Job(title="初级", salary_min=8, salary_max=12)),
+            JobMatch(company=Company(name="C"), job=Job(title="中级", salary_min=12, salary_max=20)),
+            JobMatch(company=Company(name="D"), job=Job(title="异常日薪", salary_min=100, salary_max=350)),
+        ]
+
+        advice = advise_career(matches)
+
+        self.assertEqual(advice.salary_jobs, 3)
+        self.assertEqual(advice.ignored_salary_jobs, 1)
+        self.assertEqual(advice.salary_median, 10)
+        self.assertFalse(any(band.label == "高薪档" for band in advice.salary_bands))
 
 
 if __name__ == "__main__":
