@@ -2,6 +2,32 @@
 
 Boss Analyzer 用于基于 Boss 直聘查询岗位、汇总技能要求，并长期追踪指定公司的指定岗位状态。
 
+## 最近使用信息
+
+更新时间：2026-07-03
+
+最近新增：Boss 岗位求职决策筛选。可在岗位搜索后追加 `--decision`，根据个人经验、技能、薪资底线、城市偏好、目标方向和硬性排除关键词，输出 A/B/C/D 推荐等级、综合分、风险、技能缺口、可补强技能和建议追问项。
+
+推荐命令：
+
+```bash
+python3 -B -m boss_analyzer search Go后端 --city 上海 --limit 30 --fast \
+  --experience 8 --skills Go PHP MySQL Redis Docker Elasticsearch \
+  --salary-min 35 --salary-max 45 \
+  --decision \
+  --preferred-city 上海 杭州 远程 \
+  --target-keyword 游戏 支付 高并发 \
+  --reject-keyword 外包 驻场 外派
+```
+
+最近验证：
+
+```text
+python3 -m unittest tests/test_tracker.py
+Ran 12 tests
+OK
+```
+
 ## 环境准备
 
 安装依赖：
@@ -86,6 +112,38 @@ python3 -B -m boss_analyzer search Python工程师 --city 福州 --limit 20 --fa
 - 建议谈薪区间
 - 薪资和经验同时匹配的岗位数量
 - 已匹配关键词和可补强关键词
+
+## 求职决策筛选
+
+搜索岗位时追加决策筛选，结合 Boss 岗位、个人技能、薪资期望、城市偏好、硬性排除项和目标方向，输出 A/B/C/D 推荐等级、综合分、风险、技能缺口、可补强技能和面试追问项：
+
+```bash
+python3 -B -m boss_analyzer search Go后端 --city 上海 --limit 30 --fast \
+  --experience 8 --skills Go PHP MySQL Redis Docker Elasticsearch \
+  --salary-min 35 --salary-max 45 \
+  --decision \
+  --preferred-city 上海 杭州 远程 \
+  --target-keyword 游戏 支付 高并发 \
+  --reject-keyword 外包 驻场 外派
+```
+
+推荐等级：
+
+```text
+A 强烈推荐：优先沟通，值得针对性准备面试
+B 可以尝试：可以推进，作为主力或备选机会
+C 谨慎：先补充公司、薪资和作息信息后再决定
+D 不建议：存在硬风险或投入产出比偏低
+```
+
+决策筛选会重点识别：
+
+- 薪资是否低于最低期望
+- 是否疑似外包、驻场或外派
+- 技能是否直接匹配，缺口是否能短期补齐
+- 公司规模、融资阶段、公开验证和风险记录
+- 岗位是否有成长价值，例如高并发、分布式、微服务、K8s、支付、游戏后台
+- 需要向 HR 或面试官确认的问题
 
 ## 公司岗位追踪
 

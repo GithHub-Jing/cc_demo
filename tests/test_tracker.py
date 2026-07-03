@@ -2,10 +2,12 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 
-from boss_analyzer.analyzers.tracker import detect_changes, classify_lifecycle
 from boss_analyzer.analyzers.career import advise_career
-from boss_analyzer.main import _print_career_advice, _print_skill_summary
+from boss_analyzer.analyzers.decision import evaluate_decisions
+from boss_analyzer.analyzers.tracker import detect_changes, classify_lifecycle
+from boss_analyzer.main import _print_career_advice, _print_decision_summary, _print_skill_summary
 from boss_analyzer.models.company import Company
+from boss_analyzer.models.decision import DecisionCriteria
 from boss_analyzer.models.job import Job, UserProfile
 from boss_analyzer.models.ranking import JobMatch
 from boss_analyzer.models.snapshot import JobSnapshot
@@ -206,6 +208,90 @@ class TrackerTest(unittest.TestCase):
         self.assertEqual(advice.ignored_salary_jobs, 1)
         self.assertEqual(advice.salary_median, 10)
         self.assertFalse(any(band.label == "高薪档" for band in advice.salary_bands))
+
+    def test_decision_downgrades_salary_hard_risk(self):
+        matches = [
+            JobMatch(
+                company=Company(name="低薪公司", scale="100-499人", stage="不需要融资"),
+                job=Job(
+                    title="Go后端",
+                    salary_min=18,
+                    salary_max=25,
+                    skills=["Go", "Redis", "MySQL"],
+                    description="负责高并发服务",
+                ),
+            )
+        ]
+        profile = UserProfile(
+            experience_years=6,
+            skills=["Go", "Redis", "MySQL"],
+            expected_salary_min=35,
+            expected_salary_max=45,
+        )
+
+        decision = evaluate_decisions(matches, profile)[0]
+
+        self.assertEqual(decision.recommendation, "D")
+        self.assertIn("硬风险：薪资上限低于最低期望", decision.risks)
+
+    def test_decision_reports_upskill_gap(self):
+        matches = [
+            JobMatch(
+                company=Company(name="游戏公司", scale="500-999人", stage="C轮"),
+                job=Job(
+                    title="高级后端",
+                    salary_min=35,
+                    salary_max=50,
+                    experience_min=5,
+                    experience_max=10,
+                    skills=["Go", "Redis", "Kubernetes", "Kafka"],
+                    description="游戏后台，高并发，微服务",
+                ),
+            )
+        ]
+        profile = UserProfile(
+            experience_years=8,
+            skills=["Go", "Redis"],
+            expected_salary_min=35,
+            expected_salary_max=45,
+        )
+        criteria = DecisionCriteria(target_keywords=["游戏", "高并发"])
+
+        decision = evaluate_decisions(matches, profile, criteria)[0]
+
+        self.assertIn(decision.recommendation, ["A", "B"])
+        self.assertIn("Kubernetes", decision.upskill_skills)
+        self.assertIn("Kafka", decision.upskill_skills)
+        self.assertTrue(any("技能直接匹配" in item for item in decision.strengths))
+
+    def test_print_decision_summary_outputs_recommendation(self):
+        matches = [
+            JobMatch(
+                company=Company(name="A"),
+                job=Job(
+                    title="Python后端",
+                    salary_min=20,
+                    salary_max=30,
+                    skills=["Python", "Redis", "Docker"],
+                    description="负责后端服务",
+                ),
+            ),
+        ]
+        profile = UserProfile(
+            experience_years=4,
+            skills=["Python", "Redis"],
+            expected_salary_min=20,
+            expected_salary_max=30,
+        )
+        output = StringIO()
+
+        with redirect_stdout(output):
+            _print_decision_summary(matches, profile)
+
+        text = output.getvalue()
+        self.assertIn("求职决策筛选", text)
+        self.assertIn("Top 建议", text)
+        self.assertIn("建议追问", text)
 
 
 if __name__ == "__main__":

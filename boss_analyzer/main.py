@@ -16,8 +16,10 @@ from boss_analyzer.analyzers.legitimacy import evaluate_legitimacy
 from boss_analyzer.analyzers.freshness import evaluate_freshness
 from boss_analyzer.analyzers.fitness import evaluate_fitness, evaluate_fitness_per_job
 from boss_analyzer.analyzers.career import advise_career
+from boss_analyzer.analyzers.decision import evaluate_decisions
 from boss_analyzer.analyzers.ranking import rank_matches
 from boss_analyzer.analyzers.tracker import detect_changes, classify_lifecycles
+from boss_analyzer.models.decision import DecisionCriteria
 from boss_analyzer.models.job import UserProfile
 from boss_analyzer.models.ranking import JobMatch
 from boss_analyzer.models.report import AnalysisReport
@@ -387,6 +389,8 @@ def search_positions(
     skill_summary: bool = False,
     skill_top: int = 30,
     career_advice: bool = False,
+    decision: bool = False,
+    decision_criteria: DecisionCriteria = None,
 ) -> list:
     city_code = CITY_CODES.get(city, CITY_CODES["全国"])
     if city != "全国" and city not in CITY_CODES:
@@ -478,6 +482,8 @@ def search_positions(
         _print_skill_summary(ranked, position=position, top_n=skill_top)
     if career_advice:
         _print_career_advice(ranked, profile=profile)
+    if decision:
+        _print_decision_summary(ranked, profile=profile, criteria=decision_criteria)
     return ranked
 
 
@@ -637,6 +643,57 @@ def _print_career_advice(matches: list[JobMatch], profile: UserProfile = None):
         print(f"- {item}")
 
 
+def _print_decision_summary(
+    matches: list[JobMatch],
+    profile: UserProfile = None,
+    criteria: DecisionCriteria = None,
+):
+    decisions = evaluate_decisions(matches, profile=profile, criteria=criteria)
+    print(f"\n求职决策筛选 · 样本 {len(decisions)} 个")
+    if not decisions:
+        print("未找到岗位样本，无法生成决策建议。")
+        return
+
+    headers = ["#", "等级", "公司", "岗位", "薪资", "综合", "风险", "缺口/补强", "建议"]
+    widths = [3, 8, 14, 22, 10, 6, 6, 26, 30]
+    _print_table_line(widths)
+    print("| " + " | ".join(_pad(cell, width) for cell, width in zip(headers, widths)) + " |")
+    _print_table_line(widths)
+    for decision in decisions:
+        gap = "、".join(decision.upskill_skills[:3] or decision.missing_skills[:3]) or "-"
+        row = [
+            str(decision.rank),
+            f"{decision.recommendation}/{decision.recommendation_label}",
+            _clip(decision.company.name, widths[2]),
+            _clip(decision.job.title, widths[3]),
+            decision.job.salary_range_str.replace("/月", ""),
+            f"{decision.overall_score:g}",
+            decision.risk_level,
+            _clip(gap, widths[7]),
+            _clip(decision.action, widths[8]),
+        ]
+        print("| " + " | ".join(_pad(cell, width) for cell, width in zip(row, widths)) + " |")
+    _print_table_line(widths)
+
+    top = decisions[0]
+    print(f"\nTop 建议 · {top.company.name} · {top.job.title}")
+    print(f"推荐等级: {top.recommendation}/{top.recommendation_label}，综合分: {top.overall_score:g}，风险: {top.risk_level}")
+    print(f"分项: 技能 {top.skill_score:g} / 薪资 {top.salary_score:g} / 稳定性 {top.stability_score:g} / 成长 {top.growth_score:g}")
+    if top.strengths:
+        print("优势:")
+        for item in top.strengths[:4]:
+            print(f"- {item}")
+    if top.risks:
+        print("风险:")
+        for item in top.risks[:4]:
+            print(f"- {item}")
+    if top.upskill_skills or top.missing_skills:
+        print(f"可补强技能: {'、'.join((top.upskill_skills or top.missing_skills)[:6])}")
+    print("建议追问:")
+    for item in top.questions[:5]:
+        print(f"- {item}")
+
+
 def _normalize_skill(skill: str) -> str:
     skill = str(skill or "").strip()
     return " ".join(skill.split())
@@ -726,6 +783,15 @@ def _add_profile_args(parser):
     parser.add_argument("--salary-max", type=int, default=0, help="期望最高薪资(K)")
 
 
+def _build_decision_criteria(args) -> DecisionCriteria:
+    return DecisionCriteria(
+        preferred_cities=getattr(args, "preferred_city", []) or [],
+        rejected_keywords=getattr(args, "reject_keyword", []) or ["外包", "驻场", "外派"],
+        cautious_keywords=getattr(args, "caution_keyword", []) or ["996", "大小周", "抗压", "狼性"],
+        target_keywords=getattr(args, "target_keyword", []) or [],
+    )
+
+
 def _run_track_command(args, headless: bool):
     runs = max(args.runs, 0)
     completed = 0
@@ -802,6 +868,16 @@ def main():
                           help="技能汇总最多显示多少项，默认 30")
     p_search.add_argument("--career-advice", action="store_true",
                           help="输出跳槽薪资、岗位档位和关键词补强建议")
+    p_search.add_argument("--decision", action="store_true",
+                          help="输出求职决策筛选：推荐等级、风险、技能缺口和追问项")
+    p_search.add_argument("--preferred-city", nargs="*", default=[],
+                          help="优先城市，用于决策筛选，如: 上海 杭州 远程")
+    p_search.add_argument("--target-keyword", nargs="*", default=[],
+                          help="目标方向关键词，如: 游戏 支付 高并发")
+    p_search.add_argument("--reject-keyword", nargs="*", default=[],
+                          help="硬性排除关键词，默认: 外包 驻场 外派")
+    p_search.add_argument("--caution-keyword", nargs="*", default=[],
+                          help="谨慎关键词，默认: 996 大小周 抗压 狼性")
     p_search.add_argument("--no-headless", action="store_true")
     _add_profile_args(p_search)
 
@@ -845,6 +921,8 @@ def main():
             skill_summary=args.skill_summary,
             skill_top=args.skill_top,
             career_advice=args.career_advice,
+            decision=args.decision,
+            decision_criteria=_build_decision_criteria(args),
         )
     elif args.cmd == "analyze":
         analyze(
