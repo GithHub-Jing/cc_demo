@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Boss Analyzer GUI</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fa;
+      --panel: #ffffff;
+      --line: #d9e0ea;
+      --text: #172033;
+      --muted: #667085;
+      --primary: #1b6ef3;
+      --primary-strong: #1558c7;
+      --ok: #16845b;
+      --warn: #b05a00;
+      --bad: #c62828;
+      --soft: #eef4ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .bar {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    main {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 18px;
+    }
+
+    section {
+      min-width: 0;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .panel-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    form {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    input, select {
+      width: 100%;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0 10px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+    }
+
+    input:focus, select:focus {
+      outline: 2px solid #b7d0ff;
+      border-color: var(--primary);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .switches {
+      display: grid;
+      gap: 8px;
+    }
+
+    .check {
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .check input {
+      width: 16px;
+      height: 16px;
+    }
+
+    button {
+      height: 40px;
+      border: 0;
+      border-radius: 6px;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:hover { background: var(--primary-strong); }
+    button:disabled { opacity: .55; cursor: wait; }
+
+    .status {
+      color: var(--muted);
+      font-size: 13px;
+      min-height: 20px;
+    }
+
+    .results {
+      overflow: hidden;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .metric {
+      background: var(--soft);
+      border: 1px solid #d6e4ff;
+      border-radius: 6px;
+      padding: 10px;
+      min-height: 68px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      word-break: break-word;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      background: #fbfcfe;
+    }
+
+    .rank {
+      display: inline-grid;
+      place-items: center;
+      width: 32px;
+      height: 28px;
+      border-radius: 6px;
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .rank-a { background: var(--ok); }
+    .rank-b { background: var(--primary); }
+    .rank-c { background: var(--warn); }
+    .rank-d { background: var(--bad); }
+
+    .small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .detail {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .empty {
+      padding: 28px 16px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 920px) {
+      main { grid-template-columns: 1fr; padding: 12px; }
+      .summary { grid-template-columns: 1fr 1fr; }
+      .bar { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <h1>Boss Analyzer</h1>
+      <div class="status" id="status">本地 GUI 配置入口</div>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <div class="panel-header">
+        <h2>查询配置</h2>
+      </div>
+      <form id="searchForm">
+        <label>岗位关键词
+          <input name="position" value="Go后端" required>
+        </label>
+        <div class="row">
+          <label>城市
+            <input name="city" value="上海">
+          </label>
+          <label>数量
+            <input name="limit" type="number" min="1" max="100" value="20">
+          </label>
+        </div>
+        <div class="row">
+          <label>工作年限
+            <input name="experience_years" type="number" min="0" max="60" value="8">
+          </label>
+          <label>学历
+            <select name="education">
+              <option value="">不限</option>
+              <option>大专</option>
+              <option selected>本科</option>
+              <option>硕士</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label>最低薪资 K
+            <input name="salary_min" type="number" min="0" max="500" value="35">
+          </label>
+          <label>期望薪资 K
+            <input name="salary_max" type="number" min="0" max="500" value="45">
+          </label>
+        </div>
+        <label>技能，逗号分隔
+          <input name="skills" value="Go, PHP, MySQL, Redis, Docker, Elasticsearch">
+        </label>
+        <label>优先城市
+          <input name="preferred_cities" value="上海, 杭州, 远程">
+        </label>
+        <label>目标方向
+          <input name="target_keywords" value="游戏, 支付, 高并发">
+        </label>
+        <label>硬性排除
+          <input name="reject_keywords" value="外包, 驻场, 外派">
+        </label>
+        <label>谨慎关键词
+          <input name="caution_keywords" value="996, 大小周, 抗压, 狼性">
+        </label>
+        <div class="switches">
+          <label class="check"><input name="fast" type="checkbox" checked> 使用 Cookie 快速模式</label>
+          <label class="check"><input name="full_analysis" type="checkbox"> 补充企业完整分析</label>
+        </div>
+        <button id="submitBtn" type="submit">查询并筛选</button>
+      </form>
+    </section>
+
+    <section class="results">
+      <div class="panel-header">
+        <h2>决策结果</h2>
+      </div>
+      <div class="summary" id="summary">
+        <div class="metric"><span>结果数</span><strong>0</strong></div>
+        <div class="metric"><span>A/B 推荐</span><strong>0</strong></div>
+        <div class="metric"><span>高风险</span><strong>0</strong></div>
+        <div class="metric"><span>最高分</span><strong>-</strong></div>
+      </div>
+      <div id="resultBody" class="empty">填写左侧配置后开始查询。</div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById('searchForm');
+    const statusEl = document.getElementById('status');
+    const button = document.getElementById('submitBtn');
+    const resultBody = document.getElementById('resultBody');
+    const summary = document.getElementById('summary');
+
+    function formPayload() {
+      const data = new FormData(form);
+      return {
+        position: data.get('position'),
+        city: data.get('city'),
+        limit: data.get('limit'),
+        experience_years: data.get('experience_years'),
+        education: data.get('education'),
+        salary_min: data.get('salary_min'),
+        salary_max: data.get('salary_max'),
+        skills: data.get('skills'),
+        preferred_cities: data.get('preferred_cities'),
+        target_keywords: data.get('target_keywords'),
+        reject_keywords: data.get('reject_keywords'),
+        caution_keywords: data.get('caution_keywords'),
+        fast: data.get('fast') === 'on',
+        full_analysis: data.get('full_analysis') === 'on'
+      };
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[char]));
+    }
+
+    function renderSummary(items) {
+      const ab = items.filter(item => ['A', 'B'].includes(item.recommendation)).length;
+      const high = items.filter(item => item.risk_level === '高').length;
+      const top = items.length ? items[0].overall_score : '-';
+      summary.innerHTML = `
+        <div class="metric"><span>结果数</span><strong>${items.length}</strong></div>
+        <div class="metric"><span>A/B 推荐</span><strong>${ab}</strong></div>
+        <div class="metric"><span>高风险</span><strong>${high}</strong></div>
+        <div class="metric"><span>最高分</span><strong>${top}</strong></div>
+      `;
+    }
+
+    function renderResults(items) {
+      renderSummary(items);
+      if (!items.length) {
+        resultBody.className = 'empty';
+        resultBody.textContent = '未找到匹配结果。';
+        return;
+      }
+      resultBody.className = '';
+      const rows = items.map(item => {
+        const job = item.job || {};
+        const company = item.company || {};
+        const rankClass = `rank-${String(item.recommendation || 'c').toLowerCase()}`;
+        const gaps = (item.upskill_skills?.length ? item.upskill_skills : item.missing_skills || []).slice(0, 4).join('、') || '-';
+        const risks = (item.risks || []).slice(0, 3).join('；') || '暂无明显风险';
+        return `
+          <tr>
+            <td style="width:64px"><span class="rank ${rankClass}">${escapeHtml(item.recommendation)}</span></td>
+            <td>
+              <strong>${escapeHtml(company.name)}</strong>
+              <div class="detail">${escapeHtml(company.scale || '-')}${company.stage ? ' · ' + escapeHtml(company.stage) : ''}</div>
+            </td>
+            <td>
+              <strong>${escapeHtml(job.title)}</strong>
+              <div class="detail">${escapeHtml(job.location || '-')} · ${escapeHtml(job.salary_min && job.salary_max ? `${job.salary_min}-${job.salary_max}K` : '薪资面议')}</div>
+            </td>
+            <td>${escapeHtml(item.overall_score)}<div class="small">风险 ${escapeHtml(item.risk_level)}</div></td>
+            <td>${escapeHtml(gaps)}</td>
+            <td>${escapeHtml(risks)}<div class="detail">${escapeHtml(item.action)}</div></td>
+          </tr>
+        `;
+      }).join('');
+      resultBody.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>等级</th>
+              <th>公司</th>
+              <th>岗位</th>
+              <th>分数</th>
+              <th>补强技能</th>
+              <th>风险与建议</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      button.disabled = true;
+      statusEl.textContent = '查询中，Boss 请求可能需要一些时间';
+      resultBody.className = 'empty';
+      resultBody.textContent = '正在查询并计算推荐等级...';
+      try {
+        const response = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formPayload())
+        });
+        const data = await response.json();
+        if (!data.ok) throw new Error(data.error || '查询失败');
+        renderResults(data.decisions || []);
+        statusEl.textContent = `完成：${data.count || 0} 条结果`;
+      } catch (error) {
+        renderSummary([]);
+        resultBody.className = 'empty';
+        resultBody.textContent = error.message;
+        statusEl.textContent = '查询失败';
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
+

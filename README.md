@@ -8,6 +8,8 @@ Boss Analyzer 用于基于 Boss 直聘查询岗位、汇总技能要求，并长
 
 最近新增：Boss 岗位求职决策筛选。可在岗位搜索后追加 `--decision`，根据个人经验、技能、薪资底线、城市偏好、目标方向和硬性排除关键词，输出 A/B/C/D 推荐等级、综合分、风险、技能缺口、可补强技能和建议追问项。
 
+当前新增：本地 GUI 配置页面。可通过页面填写岗位、城市、数量、经验、技能、薪资、优先城市、目标方向和排除关键词，并调用现有 Boss 搜索与决策筛选逻辑。
+
 推荐命令：
 
 ```bash
@@ -24,7 +26,7 @@ python3 -B -m boss_analyzer search Go后端 --city 上海 --limit 30 --fast \
 
 ```text
 python3 -m unittest tests/test_tracker.py
-Ran 12 tests
+Ran 14 tests
 OK
 ```
 
@@ -144,6 +146,33 @@ D 不建议：存在硬风险或投入产出比偏低
 - 公司规模、融资阶段、公开验证和风险记录
 - 岗位是否有成长价值，例如高并发、分布式、微服务、K8s、支付、游戏后台
 - 需要向 HR 或面试官确认的问题
+
+## GUI 配置页面
+
+启动本地 GUI：
+
+```bash
+python3 -B -m boss_analyzer gui
+```
+
+默认访问地址：
+
+```text
+http://127.0.0.1:8765
+```
+
+如端口被占用，程序会自动尝试后续端口。也可以手动指定：
+
+```bash
+python3 -B -m boss_analyzer gui --host 127.0.0.1 --port 8780
+```
+
+GUI 保持现有模式不变，只作为新的配置入口：
+
+- 页面提交配置到本地 `/api/search`
+- 后端复用 `search_positions`
+- 决策结果复用 `evaluate_decisions`
+- CLI 的 `search`、`analyze`、`track` 仍按原方式使用
 
 ## 公司岗位追踪
 

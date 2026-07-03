@@ -5,6 +5,7 @@ from io import StringIO
 from boss_analyzer.analyzers.career import advise_career
 from boss_analyzer.analyzers.decision import evaluate_decisions
 from boss_analyzer.analyzers.tracker import detect_changes, classify_lifecycle
+from boss_analyzer.gui.server import criteria_from_payload, parse_list, profile_from_payload
 from boss_analyzer.main import _print_career_advice, _print_decision_summary, _print_skill_summary
 from boss_analyzer.models.company import Company
 from boss_analyzer.models.decision import DecisionCriteria
@@ -292,6 +293,32 @@ class TrackerTest(unittest.TestCase):
         self.assertIn("求职决策筛选", text)
         self.assertIn("Top 建议", text)
         self.assertIn("建议追问", text)
+
+    def test_gui_payload_builds_profile_and_criteria(self):
+        payload = {
+            "experience_years": "8",
+            "skills": "Go，Redis, Docker、MySQL",
+            "education": "本科",
+            "salary_min": "35",
+            "salary_max": "45",
+            "preferred_cities": "上海, 杭州, 远程",
+            "target_keywords": "游戏, 支付",
+            "reject_keywords": "外包, 驻场",
+        }
+
+        profile = profile_from_payload(payload)
+        criteria = criteria_from_payload(payload)
+
+        self.assertEqual(profile.experience_years, 8)
+        self.assertEqual(profile.skills, ["Go", "Redis", "Docker", "MySQL"])
+        self.assertEqual(profile.expected_salary_min, 35)
+        self.assertEqual(criteria.preferred_cities, ["上海", "杭州", "远程"])
+        self.assertEqual(criteria.target_keywords, ["游戏", "支付"])
+        self.assertEqual(criteria.rejected_keywords, ["外包", "驻场"])
+
+    def test_parse_list_accepts_array_and_chinese_separators(self):
+        self.assertEqual(parse_list(["Go", " Redis ", ""]), ["Go", "Redis"])
+        self.assertEqual(parse_list("Go，Redis、Docker"), ["Go", "Redis", "Docker"])
 
 
 if __name__ == "__main__":

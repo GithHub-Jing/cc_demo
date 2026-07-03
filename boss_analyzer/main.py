@@ -476,7 +476,7 @@ def search_positions(
     if output_format == "html":
         path = generate_ranking_report(ranked, position, city, profile, output_path)
         logger.info(f"排名报告已生成: {path}")
-    else:
+    elif output_format != "none":
         _print_search_table(ranked, position, city)
     if skill_summary:
         _print_skill_summary(ranked, position=position, top_n=skill_top)
@@ -836,6 +836,11 @@ def main():
     p_login = sub.add_parser("login", help="打开浏览器完成 Boss直聘 登录并保存 Cookie（search 命令前置步骤）")
     p_login.add_argument("--headless", action="store_true", help="无头模式（默认关闭，登录需要可视浏览器）")
 
+    # --- gui ---
+    p_gui = sub.add_parser("gui", help="启动本地 GUI 配置页面")
+    p_gui.add_argument("--host", default="127.0.0.1", help="监听地址，默认 127.0.0.1")
+    p_gui.add_argument("--port", type=int, default=8765, help="监听端口，默认 8765")
+
     # --- track ---
     p_track = sub.add_parser("track", help="定期追踪岗位变化")
     p_track.add_argument("query", help="公司名称或 Boss直聘 URL")
@@ -902,6 +907,9 @@ def main():
 
     if args.cmd == "login":
         boss_login(headless=getattr(args, "headless", False))
+    elif args.cmd == "gui":
+        from boss_analyzer.gui import run_gui
+        run_gui(host=args.host, port=args.port)
     elif args.cmd == "track":
         _run_track_command(
             args=args,
